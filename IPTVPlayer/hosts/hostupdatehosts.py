@@ -349,7 +349,7 @@ class updatehosts(CBaseHostClass):
         try:
             if host != '':
                 if not fileExists(self.HRG):
-                    datsz = '{"disabled_hosts": [], "version": 0, "hosts": ["youtube","mooviecc","filmezz","mozicsillag","dailymotion","vimeo","twitchtv","hitboxtv"]}'
+                    datsz = {"disabled_hosts": [], "version": 0, "hosts": ["youtube","mooviecc","filmezz","mozicsillag","dailymotion","vimeo","twitchtv","hitboxtv"]}
                     datsz = json_dumps(datsz)
                     with codecs.open(self.HRG, 'w', encoding, 'replace') as fuw:
                         fuw.write(datsz)
