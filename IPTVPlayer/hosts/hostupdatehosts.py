@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-04-12 by Alec - updatehosts HU host telepítő
+# 2019-04-14 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "1.0"
+HOST_VERSION = "1.1"
 ###################################################
 # LOCAL import
 ###################################################
@@ -106,7 +106,7 @@ class updatehosts(CBaseHostClass):
                 MAIN_CAT_TAB = sorted(MAIN_CAT_TAB, key=lambda i: (i['azon'], i['title']))
                 self.listsTab(MAIN_CAT_TAB, cItem)
             else:
-                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 10 )
+                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
         except Exception:
             printExc()
 
@@ -144,7 +144,8 @@ class updatehosts(CBaseHostClass):
         destination_dir = self.TEMP + '/' + host + zlib.decompress(base64.b64decode('eJzTzU0sLkktAgAKGQK6'))
         try_number = '10'
         time_out = '60'
-        wget_command = ['wget', '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
+        wsz = self.wsze()
+        wget_command = [wsz, '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
         unzip_command = ['unzip', '-q', '-o', destination, '-d', self.TEMP]
         try:
             if host == '' or atx == '':
@@ -164,65 +165,65 @@ class updatehosts(CBaseHostClass):
                                     dest_dir = self.IH + self.ILS
                                     if not self._mycopy(filename,dest_dir):
                                         hiba = True
-                                        msg = 'Nem sikerült a fájl másolása:  ' + host + 'logo.png'
+                                        msg = 'Hiba: 5 - Nem sikerült a logo fájl másolása'
                                     if not hiba:
                                         filename = '/tmp/' + host + zlib.decompress(base64.b64decode('eJzTzU0sLkkt0vcMCAkLyEmsTC0CADznBpk=')) + self.IPSR + '/' + host + '100.png'
                                         dest_dir = self.IH + self.IPSR
                                         if not self._mycopy(filename,dest_dir):
                                             hiba = True
-                                            msg = 'Nem sikerült a fájl másolása:  ' + host + '100.png'
+                                            msg = 'Hiba: 6 - Nem sikerült a 100 fájl másolása'
                                     if not hiba:
                                         filename = '/tmp/' + host + zlib.decompress(base64.b64decode('eJzTzU0sLkkt0vcMCAkLyEmsTC0CADznBpk=')) + self.IPSR + '/' + host + '120.png'
                                         dest_dir = self.IH + self.IPSR
                                         if not self._mycopy(filename,dest_dir):
                                             hiba = True
-                                            msg = 'Nem sikerült a fájl másolása:  ' + host + '120.png'
+                                            msg = 'Hiba: 7 - Nem sikerült a 120 fájl másolása'
                                     if not hiba:    
                                         filename = '/tmp/' + host + zlib.decompress(base64.b64decode('eJzTzU0sLkkt0vcMCAkLyEmsTC0CADznBpk=')) + self.IPSR + '/' + host + '135.png'
                                         dest_dir = self.IH + self.IPSR
                                         if not self._mycopy(filename,dest_dir):
                                             hiba = True
-                                            msg = 'Nem sikerült a fájl másolása:  ' + host + '135.png'
+                                            msg = 'Hiba: 8 - Nem sikerült a 135 fájl másolása'
                                 if not hiba and sh_kell:
                                     filename = '/tmp/' + host + zlib.decompress(base64.b64decode('eJzTzU0sLkkt0vcMCAkLyEmsTC0CADznBpk=')) + self.ICM + '/' + host + '.sh'
                                     dest_dir = self.IH + self.ICM
                                     if not self._mycopy(filename,dest_dir):
                                         hiba = True
-                                        msg = 'Nem sikerült a fájl másolása:  ' + host + '.sh'
+                                        msg = 'Hiba: 9 - Nem sikerült az sh fájl másolása'
                                 if not hiba:
                                     if not self.lfwr('host' + host):
                                         hiba = True
-                                        msg = 'Nem sikerült a(z) fájl írása: ' + zlib.decompress(base64.b64decode('eJzLySwu0SupKAEADrUDSw=='))
+                                        msg = 'Hiba: 10 - Nem sikerült a fájl írása'
                                 if not hiba:
                                     if not self.asfwr('host' + host, atx):
                                         hiba = True
-                                        msg = 'Nem sikerült a(z) fájl írása: ' + zlib.decompress(base64.b64decode('eJxLzMlMLE4t1iupKAEAGmEEcQ=='))
+                                        msg = 'Hiba: 11 - Nem sikerült a fájl írása'
                                 if not hiba:
                                     if not self.hnfwr(host):
                                         hiba = True
-                                        msg = 'Nem sikerült a host betöltése!'
+                                        msg = 'Hiba: 12 - Nem sikerült a host csoport betöltése!'
                                     else:
                                         hiba = False                                    
                             else:
                                 hiba = True
-                                msg = 'Nem sikerült a fájl másolása: host' + host + '.py'
+                                msg = 'Hiba: 4 - Nem sikerült a py fájl másolása'
                         else:
                             hiba = True
-                            msg = 'Nem sikerült a fájl kitömörítése!'
+                            msg = 'Hiba: 3 - Nem sikerült a fájl kitömörítése!'
                     else:
                         hiba = True
-                        msg = 'Hibás a letöltött fájl!'
+                        msg = 'Hiba: 2 - Hibás a letöltött fájl!'
                 else:
                     hiba = True
-                    self.sessionEx.open(MessageBox, 'Nem sikerült ennek a fájlnak a letöltése:\n%s' % url, type = MessageBox.TYPE_ERROR, timeout = 10 )
+                    msg = 'Hiba: 1 - Nem sikerült a fájl letöltése!'
             if hiba:
                 if msg == '':
-                    msg = 'Nem sikerült a(z)  ' + host.upper() + '  host telepítése!'
+                    msg = 'Hiba: 13 - Nem sikerült a(z)  ' + host.upper() + '  host telepítése!'
                 title = host + ' telepítése nemsikerült!'
                 desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
-                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 10 )
+                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
             else:
-                msg = 'Sikerült a(z)  ' + host.upper() + '  host telepítése!\nKezelőfelület újraindítása szükséges. Újraindítsam most?'
+                msg = 'Sikerült a(z)  ' + host.upper() + '  host telepítése!\n\nKezelőfelület újraindítása szükséges. Újraindítsam most?'
                 title = host + ' telepítése végrehajtva'
                 desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a telepítés, frissítés!!!'
                 try:
@@ -232,13 +233,13 @@ class updatehosts(CBaseHostClass):
                             desc = 'A kezelőfelület most újraindul...'
                             quitMainloop(3)
                         except Exception:
-                            msg = 'Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
+                            msg = 'Hiba: 14 - Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
                             desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a telepítés, frissítés!!!'
-                            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 5 )
+                            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )
                 except Exception:
-                    msg = 'Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
+                    msg = 'Hiba: 15 - Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
                     desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a telepítés, frissítés!!!'
-                    self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 5 )                
+                    self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )                
         except Exception:
             title = host + ' telepítése nemsikerült!'
             desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
@@ -276,16 +277,31 @@ class updatehosts(CBaseHostClass):
         valasz = False
         try:
             if Which('wget') == '':
-                msg = 'wget kell a használathoz, kérjük telepítse azt!'
+                if Which('fullwget') == '': 
+                    msg = 'Hiba: 100 - wget kell a használathoz, kérjük telepítse azt!'
             elif Which('unzip') == '':
-                msg = 'unzip kell a használathoz, kérjük telepítse azt!'
+                msg = 'Hiba: 101 - unzip kell a használathoz, kérjük telepítse azt!'
             elif Which('cp') == '':
-                msg = 'cp kell a használathoz, kérjük telepítse azt!'
+                msg = 'Hiba: 102 - cp kell a használathoz, kérjük telepítse azt!'
             else:
                 valasz = True
         except Exception:
             printExc()
         return valasz, msg
+        
+    def wsze(self):
+        bsz = 'wget'
+        try:
+            whwg = config.plugins.iptvplayer.wgetpath.value
+            if whwg == 'wget':
+                if Which('wget') != '':
+                    bsz = 'wget'
+            if whwg == 'fullwget':
+                if Which('fullwget') != '':
+                    bsz = 'fullwget'
+        except Exception:
+            printExc()
+        return bsz
         
     def lfwr(self, text=''):
         sikerult = False
@@ -332,6 +348,11 @@ class updatehosts(CBaseHostClass):
         encoding = 'utf-8'
         try:
             if host != '':
+                if not fileExists(self.HRG):
+                    datsz = '{"disabled_hosts": [], "version": 0, "hosts": ["youtube","mooviecc","filmezz","mozicsillag","dailymotion","vimeo","twitchtv","hitboxtv"]}'
+                    datsz = json_dumps(datsz)
+                    with codecs.open(self.HRG, 'w', encoding, 'replace') as fuw:
+                        fuw.write(datsz)
                 if fileExists(self.HRG):
                     with codecs.open(self.HRG, 'r', encoding, 'replace') as fpr:
                         data = fpr.read()
@@ -375,7 +396,8 @@ class updatehosts(CBaseHostClass):
         destination_dir = self.TEMP + '/' + host + zlib.decompress(base64.b64decode('eJzTzU0sLkktAgAKGQK6'))
         try_number = '10'
         time_out = '60'
-        wget_command = ['wget', '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
+        wsz = self.wsze()
+        wget_command = [wsz, '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
         unzip_command = ['unzip', '-q', '-o', destination, '-d', self.TEMP]
         if fileExists(destination):
             rm(destination)
