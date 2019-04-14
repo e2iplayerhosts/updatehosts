@@ -290,15 +290,15 @@ class updatehosts(CBaseHostClass):
         return valasz, msg
         
     def wsze(self):
-        bsz = 'wget'
+        bsz = ''
         try:
             whwg = config.plugins.iptvplayer.wgetpath.value
-            if whwg == 'wget':
-                if Which('wget') != '':
-                    bsz = 'wget'
-            if whwg == 'fullwget':
+            if 'fullwget' in whwg:
                 if Which('fullwget') != '':
                     bsz = 'fullwget'
+            elif 'wget' in whwg:
+                if Which('wget') != '':
+                    bsz = 'wget'
         except Exception:
             printExc()
         return bsz
