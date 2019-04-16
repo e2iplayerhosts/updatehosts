@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-04-14 by Alec - updatehosts HU host telepítő
+# 2019-04-16 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "1.1"
+HOST_VERSION = "1.2"
 ###################################################
 # LOCAL import
 ###################################################
@@ -91,26 +91,56 @@ class updatehosts(CBaseHostClass):
 
     def listMainMenu(self, cItem):
         try:
+            msg_host = 'Magyar Hostok listája\n\nA hostok betöltése több időt vehet igénybe!  A letöltés ideje függ az internet sebességétől, illetve a gyűjtő oldal leterheltségétől is...'
+            msg_magyar = 'Az E2iPlayer magyarítását lehet itt vérehajtani.'
+            MAIN_CAT_TAB = [{'category': 'list_main', 'title': 'Magyar hostok', 'tab_id': 'hostok', 'desc': msg_host},
+                            {'category': 'list_main', 'title': 'E2iPlayer magyarítása', 'tab_id': 'magyaritas', 'desc': msg_magyar}
+                           ]
+            self.listsTab(MAIN_CAT_TAB, cItem)
+        except Exception:
+            printExc()
+            
+    def listMainItems(self, cItem):
+        try:
+            tabID = cItem.get('tab_id', '')
+            if tabID == 'hostok':
+                self.Hostok_listaja(cItem)
+            elif tabID == 'magyaritas':
+                self.Magyaritas(cItem)
+            else:
+                return
+        except Exception:
+            printExc()
+            
+    def Hostok_listaja(self, cItem):
+        try:
             valasz, msg = self._usable()
-            if valasz: 
-                MAIN_CAT_TAB = []
-                MAIN_CAT_TAB.append(self.menuItem(self.UPDATEHOSTS))
-                MAIN_CAT_TAB.append(self.menuItem(self.SONYPLAYER))
-                MAIN_CAT_TAB.append(self.menuItem(self.MYTVTELENOR))
-                MAIN_CAT_TAB.append(self.menuItem(self.RTLMOST))
-                MAIN_CAT_TAB.append(self.menuItem(self.MINDIGO))
-                MAIN_CAT_TAB.append(self.menuItem(self.MOOVIECC))
-                MAIN_CAT_TAB.append(self.menuItem(self.MOZICSILLAG))
-                MAIN_CAT_TAB.append(self.menuItem(self.FILMEZZ))
-                #MAIN_CAT_TAB.append(self.menuItem(self.AUTOHU)) nem megy még
-                MAIN_CAT_TAB = sorted(MAIN_CAT_TAB, key=lambda i: (i['azon'], i['title']))
-                self.listsTab(MAIN_CAT_TAB, cItem)
+            if valasz:
+                HOST_CAT_TAB = []
+                HOST_CAT_TAB.append(self.menuItem(self.UPDATEHOSTS))
+                HOST_CAT_TAB.append(self.menuItem(self.SONYPLAYER))
+                HOST_CAT_TAB.append(self.menuItem(self.MYTVTELENOR))
+                HOST_CAT_TAB.append(self.menuItem(self.RTLMOST))
+                HOST_CAT_TAB.append(self.menuItem(self.MINDIGO))
+                HOST_CAT_TAB.append(self.menuItem(self.MOOVIECC))
+                HOST_CAT_TAB.append(self.menuItem(self.MOZICSILLAG))
+                HOST_CAT_TAB.append(self.menuItem(self.FILMEZZ))
+                #HOST_CAT_TAB.append(self.menuItem(self.AUTOHU)) nem megy még
+                HOST_CAT_TAB = sorted(HOST_CAT_TAB, key=lambda i: (i['azon'], i['title']))
+                self.listsTab(HOST_CAT_TAB, cItem)
             else:
                 self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
         except Exception:
             printExc()
+            
+    def Magyaritas(self, cItem):
+        try:
+            msg = 'Nemsokára elérhető lesz ez a funkció!'
+            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )
+        except Exception:
+            printExc()
 
-    def listMainItems(self, cItem):
+    def listSecondItems(self, cItem):
         try:
             tabID = cItem.get('tab_id', '')
             if tabID == self.UPDATEHOSTS:
@@ -142,8 +172,8 @@ class updatehosts(CBaseHostClass):
         url = zlib.decompress(base64.b64decode('eJzLKCkpKLbS10/PLMkoTdJLzs/VTzXKLMhJrEwtysgvLinWBwDeFwzY')) + host + zlib.decompress(base64.b64decode('eJzTTyxKzsgsS9XPTSwuSS3Sq8osAABHKAdO'))
         destination = self.TEMP + '/' + host + '.zip'
         destination_dir = self.TEMP + '/' + host + zlib.decompress(base64.b64decode('eJzTzU0sLkktAgAKGQK6'))
-        try_number = '10'
-        time_out = '60'
+        try_number = '3'
+        time_out = '5'
         wsz = self.wsze()
         wget_command = [wsz, '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
         unzip_command = ['unzip', '-q', '-o', destination, '-d', self.TEMP]
@@ -245,7 +275,7 @@ class updatehosts(CBaseHostClass):
             desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
             printExc()
         params = dict()
-        params.update({'good_for_fav': False, 'category': 'list_main', 'title': title, 'tab_id': host, 'desc': desc})
+        params.update({'good_for_fav': False, 'category': 'list_second', 'title': title, 'tab_id': host, 'desc': desc})
         self.addDir(params)
         if fileExists(destination):
             rm(destination)
@@ -394,8 +424,8 @@ class updatehosts(CBaseHostClass):
         url = zlib.decompress(base64.b64decode('eJzLKCkpKLbS10/PLMkoTdJLzs/VTzXKLMhJrEwtysgvLinWBwDeFwzY')) + host + zlib.decompress(base64.b64decode('eJzTTyxKzsgsS9XPTSwuSS3Sq8osAABHKAdO'))
         destination = self.TEMP + '/' + host + '.zip'
         destination_dir = self.TEMP + '/' + host + zlib.decompress(base64.b64decode('eJzTzU0sLkktAgAKGQK6'))
-        try_number = '10'
-        time_out = '60'
+        try_number = '3'
+        time_out = '5'
         wsz = self.wsze()
         wget_command = [wsz, '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
         unzip_command = ['unzip', '-q', '-o', destination, '-d', self.TEMP]
@@ -475,7 +505,7 @@ class updatehosts(CBaseHostClass):
                 title = host_title + '  (ismeretlen verzió)  -  Telepítés szükséges'
                 msg = ' telepítéséhez nyomja meg az OK gombot a távirányítóján!'
         desc = host + msg + '\n\nHelyi verzió szám:  ' + local_host_version + '\nTávoli verzió szám:  ' + remote_host_version
-        params = {'category':'list_main', 'title': title, 'tab_id': host, 'azon': id, 'desc': desc}
+        params = {'category':'list_second', 'title': title, 'tab_id': host, 'azon': id, 'desc': desc}
         return params
     
     def handleService(self, index, refresh = 0, searchPattern = '', searchType = ''):
@@ -490,6 +520,8 @@ class updatehosts(CBaseHostClass):
             self.listMainMenu( {'name':'category'} )
         elif category == 'list_main':
             self.listMainItems(self.currItem)
+        elif category == 'list_second':
+            self.listSecondItems(self.currItem)
         else:
             printExc()
         CBaseHostClass.endHandleService(self, index, refresh)
