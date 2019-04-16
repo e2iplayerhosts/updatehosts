@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-04-16 by Alec - updatehosts HU host telepítő
+# 2019-04-17 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "1.2"
+HOST_VERSION = "1.3"
 ###################################################
 # LOCAL import
 ###################################################
 from Plugins.Extensions.IPTVPlayer.components.iptvplayerinit import TranslateTXT as _, SetIPTVPlayerLastHostError
 from Plugins.Extensions.IPTVPlayer.components.ihost import CHostBase, CBaseHostClass
-from Plugins.Extensions.IPTVPlayer.tools.iptvtools import printDBG, printExc, byteify, rm, rmtree, GetTmpDir, MergeDicts, GetConfigDir, Which
+from Plugins.Extensions.IPTVPlayer.tools.iptvtools import printDBG, printExc, byteify, rm, rmtree, GetBinDir, GetTmpDir, MergeDicts, GetConfigDir, Which
 from Plugins.Extensions.IPTVPlayer.tools.iptvtypes import strwithmeta
 from Plugins.Extensions.IPTVPlayer.libs.e2ijson import loads as json_loads, dumps as json_dumps
 from Plugins.Extensions.IPTVPlayer.libs import ph
@@ -28,13 +28,19 @@ import zlib
 import cookielib
 import base64
 import traceback
-import subprocess
+try:
+    import subprocess
+    FOUND = True
+except Exception:
+    FOUND = False
 import codecs
 from Tools.Directories import resolveFilename, fileExists, SCOPE_PLUGINS
 from enigma import quitMainloop
 from copy import deepcopy
-try:    import json
-except Exception: import simplejson as json
+try:
+    import json
+except Exception:
+    import simplejson as json
 from Components.config import config, ConfigText, getConfigListEntry
 from datetime import datetime
 from hashlib import sha1
@@ -66,6 +72,7 @@ class updatehosts(CBaseHostClass):
         self.HRG = GetConfigDir(zlib.decompress(base64.b64decode('eJzLLCgpK8hJrEwtyijNS08sykzMSy/KLy3QyyrOzwMAuJQMIw==')))
         self.LTX = self.IH + self.HS + zlib.decompress(base64.b64decode('eJzTz8ksLtErqSgBABBdA3o='))
         self.ASTX = self.IH + self.HS + zlib.decompress(base64.b64decode('eJzTT8zJTCxOLdYrqSgBAByWBKA='))
+        self.HLM = self.IH + zlib.decompress(base64.b64decode('eJzTz8lPTsxJ1c8o1fdxjvd1DQ52dHcNBgBVsAch'))
         self.UPDATEHOSTS = zlib.decompress(base64.b64decode('eJwrLUhJLEnNyC8uKQYAHAAEtQ=='))
         self.SONYPLAYER = zlib.decompress(base64.b64decode('eJwrzs+rLMhJrEwtAgAYFQRX'))
         self.MYTVTELENOR = zlib.decompress(base64.b64decode('eJzLrSwpK0nNSc3LLwIAHQwEyg=='))
@@ -91,8 +98,8 @@ class updatehosts(CBaseHostClass):
 
     def listMainMenu(self, cItem):
         try:
-            msg_host = 'Magyar Hostok listája\n\nA hostok betöltése több időt vehet igénybe!  A letöltés ideje függ az internet sebességétől, illetve a gyűjtő oldal leterheltségétől is...'
-            msg_magyar = 'Az E2iPlayer magyarítását lehet itt vérehajtani.'
+            msg_host = 'Magyar Hostok listája\n\nA hostok betöltése több időt vehet igénybe!  A letöltés ideje függ az internet sebességétől, illetve a gyűjtő oldal leterheltségétől is...\nVárd meg míg a hostok listája megjelenik. Ez eltarthat akár 3 percig is.'
+            msg_magyar = 'Az E2iPlayer magyarítását lehet itt végrehajtani.'
             MAIN_CAT_TAB = [{'category': 'list_main', 'title': 'Magyar hostok', 'tab_id': 'hostok', 'desc': msg_host},
                             {'category': 'list_main', 'title': 'E2iPlayer magyarítása', 'tab_id': 'magyaritas', 'desc': msg_magyar}
                            ]
@@ -135,15 +142,22 @@ class updatehosts(CBaseHostClass):
             
     def Magyaritas(self, cItem):
         try:
-            msg = 'Nemsokára elérhető lesz ez a funkció!'
-            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )
+            valasz, msg = self._usable()
+            if valasz:
+                HUN_CAT_TAB = []
+                HUN_CAT_TAB.append(self.menuItemHun())
+                self.listsTab(HUN_CAT_TAB, cItem)
+            else:
+                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
         except Exception:
             printExc()
 
     def listSecondItems(self, cItem):
         try:
             tabID = cItem.get('tab_id', '')
-            if tabID == self.UPDATEHOSTS:
+            if tabID == 'magyaritas':
+                self.hun_telepites()
+            elif tabID == self.UPDATEHOSTS:
                 self.host_telepites(self.UPDATEHOSTS,True,False,'HU host telepítő, frissítő')
             elif tabID == self.SONYPLAYER:
                 self.host_telepites(self.SONYPLAYER,True,True,'Sony Player HU')
@@ -165,6 +179,82 @@ class updatehosts(CBaseHostClass):
                 return
         except Exception:
             printExc()
+            
+    def hun_telepites(self):
+        hiba = False
+        msg = ''
+        url = zlib.decompress(base64.b64decode('eJwFwVEKgEAIBcAb7YM+u40tkoKLom5Qp29GuqNO4NaWfY3pC3xoGL2c4tUF2eaTjEE5RR/GomrO8Wn8zdsXcg=='))
+        destination = self.TEMP + zlib.decompress(base64.b64decode('eJzTzyjNyU9OzEnVq8osAAAiHgT+'))
+        destination_dir = self.TEMP + zlib.decompress(base64.b64decode('eJzTzyjNyU9OzEnVzU0sLkktAgAzPwY2'))
+        try_number = '3'
+        time_out = '5'
+        wsz = self.wsze()
+        wget_command = [wsz, '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
+        unzip_command = ['unzip', '-q', '-o', destination, '-d', self.TEMP]
+        if fileExists(destination):
+            rm(destination)
+            rmtree(destination_dir, ignore_errors=True)
+        try:        
+            if self._mycall(wget_command) == 0:
+                if fileExists(destination):
+                    if self._mycall(unzip_command) == 0:
+                        filename = zlib.decompress(base64.b64decode('eJzTL8kt0M8ozclPTsxJ1c1NLC5JLdL3DAgJC8hJrAQyIRJAFfo+zvG+rsHBju6uwUgK9HLzATUCF54='))
+                        dest_dir = self.HLM
+                        if self._mycopy(filename,dest_dir):
+                            filename = zlib.decompress(base64.b64decode('eJzTL8kt0M8ozclPTsxJ1c1NLC5JLdL3DAgJC8hJrAQyIRJAFfo+zvG+rsHBju6uwUgK9AryATUIF6E='))
+                            dest_dir = self.HLM
+                            if self._mycopy(filename,dest_dir):
+                                hiba = False
+                            else:
+                                hiba = True
+                                msg = 'Hiba: 200 - Nem sikerült a po fájl másolása'
+                        else:
+                            hiba = True
+                            msg = 'Hiba: 201 - Nem sikerült a mo fájl másolása'
+                    else:
+                        hiba = True
+                        msg = 'Hiba: 202 - Nem sikerült a fájl kitömörítése!'
+                else:
+                    hiba = True
+                    msg = 'Hiba: 203 - Hibás a letöltött fájl!'
+            else:
+                hiba = True
+                msg = 'Hiba: 204 - Nem sikerült a fájl letöltése!'
+            if hiba:
+                if msg == '':
+                    msg = 'Hiba: 205 - Nem sikerült a magyarítás telepítése!'
+                title = 'A magyarítás telepítése nemsikerült!'
+                desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+            else:
+                msg = 'Sikerült a magyarítás telepítése!\n\nKezelőfelület újraindítása szükséges. Újraindítsam most?'
+                title = 'Magyarítás telepítése végrehajtva'
+                desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a telepítés, frissítés!!!'
+                try:
+                    ret = self.sessionEx.waitForFinishOpen(MessageBox, msg, type=MessageBox.TYPE_YESNO, default=True)
+                    if ret[0]:
+                        try:
+                            desc = 'A kezelőfelület most újraindul...'
+                            quitMainloop(3)
+                        except Exception:
+                            msg = 'Hiba: 206 - Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
+                            desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a telepítés, frissítés!!!'
+                            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )
+                except Exception:
+                    msg = 'Hiba: 207 - Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
+                    desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a telepítés, frissítés!!!'
+                    self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )
+        except Exception:
+            title = 'A magyarítás telepítése nemsikerült!'
+            desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+            printExc()
+        params = dict()
+        params.update({'good_for_fav': False, 'category': 'list_second', 'title': title, 'tab_id': 'magyaritas', 'desc': desc})
+        self.addDir(params)
+        if fileExists(destination):
+            rm(destination)
+            rmtree(destination_dir, ignore_errors=True)
+        return
         
     def host_telepites(self, host='', logo_kell=True, sh_kell=False, atx=''):
         hiba = False
@@ -308,11 +398,15 @@ class updatehosts(CBaseHostClass):
         try:
             if Which('wget') == '':
                 if Which('fullwget') == '': 
-                    msg = 'Hiba: 100 - wget kell a használathoz, kérjük telepítse azt!'
+                    msg = 'Hiba: 100 - wget vagy fullwget kell a használathoz, kérjük telepítsd azt!'
             elif Which('unzip') == '':
-                msg = 'Hiba: 101 - unzip kell a használathoz, kérjük telepítse azt!'
+                msg = 'Hiba: 101 - unzip kell a használathoz, kérjük telepítsd azt!'
             elif Which('cp') == '':
-                msg = 'Hiba: 102 - cp kell a használathoz, kérjük telepítse azt!'
+                msg = 'Hiba: 102 - cp kell a használathoz, kérjük telepítsd azt!'
+            elif not os.path.isdir(self.IH):
+                msg = 'Hiba: 103 - Nem megfelelő E2iPlayer könyvtár!'
+            elif FOUND == False:
+                msg = 'Hiba: 104 - Sajnos nem kompatibilis a set-top-box rendszere a használathoz!'
             else:
                 valasz = True
         except Exception:
@@ -323,12 +417,12 @@ class updatehosts(CBaseHostClass):
         bsz = ''
         try:
             whwg = config.plugins.iptvplayer.wgetpath.value
-            if 'fullwget' in whwg:
-                if Which('fullwget') != '':
-                    bsz = 'fullwget'
-            elif 'wget' in whwg:
-                if Which('wget') != '':
-                    bsz = 'wget'
+            if whwg == 'wget' or whwg == '/usr/bin/wget':
+                bsz = '/usr/bin/wget'
+            if whwg == '/usr/bin/fullwget':
+                bsz = '/usr/bin/fullwget'
+            ##if whwg == GetBinDir('wget', '')
+            ##    bsz = GetBinDir('wget', '')
         except Exception:
             printExc()
         return bsz
@@ -400,6 +494,7 @@ class updatehosts(CBaseHostClass):
         return sikerult
         
     def getHostVersion_local(self, filename):
+        verzio = 'ismeretlen verzió'
         try:
             f = open(filename, 'r')
             data = f.read()
@@ -476,14 +571,14 @@ class updatehosts(CBaseHostClass):
         remote_host_version = self.getHostVersion_remote(host)
         if local_host_version == 'nincs ilyen host':
             id = 1
-            msg = ' telepítéséhez nyomja meg az OK gombot a távirányítóján!'
+            msg = ' telepítéséhez nyomd meg az OK gombot a távirányítón!'
             if remote_host_version == 'ismeretlen verzió':
                 title = host_title + '  (ismeretlen verzió)  -  Telepítés szükséges'
             else:
                 title = host_title + '  (v' + remote_host_version + ')  -  Telepítés szükséges'
         elif local_host_version == 'ismeretlen verzió':
             id = 1
-            msg = ' telepítéséhez nyomja meg az OK gombot a távirányítóján!'
+            msg = ' telepítéséhez nyomd meg az OK gombot a távirányítón!'
             if remote_host_version == 'ismeretlen verzió':
                 title = host_title + '  (ismeretlen verzió)  -  Telepíthető'
             else:
@@ -495,17 +590,132 @@ class updatehosts(CBaseHostClass):
                 if lhv < rhv:
                     id = 2
                     title = host_title + '  (v' + remote_host_version + ')  -  Frissítés szükséges'
-                    msg = ' frissítéséhez nyomja meg az OK gombot a távirányítóján!'
+                    msg = ' frissítéséhez nyomd meg az OK gombot a távirányítón!'
                 if lhv >= rhv:
                     id = 3
                     title = host_title + '  (v' + remote_host_version + ')'
                     msg = ' napra kész, nincs semmi teendő!'
             except Exception:
                 id = 1
-                title = host_title + '  (ismeretlen verzió)  -  Telepítés szükséges'
-                msg = ' telepítéséhez nyomja meg az OK gombot a távirányítóján!'
+                title = host_title + '  (ismeretlen verzió)  -  Ismételt ellenörzés szükséges'
+                msg = ' távoli verzió száma nem érhető el!  Próbáld meg ismét a Magyar hostok betöltését!\nHa még is telepítenéd a hostot, akkor nyomd meg az OK gombot a távirányítón!'
         desc = host + msg + '\n\nHelyi verzió szám:  ' + local_host_version + '\nTávoli verzió szám:  ' + remote_host_version
         params = {'category':'list_second', 'title': title, 'tab_id': host, 'azon': id, 'desc': desc}
+        return params
+        
+    def getHunVersion_local(self):
+        verzio = 'ismeretlen verzió'
+        verzio_tmp = ''
+        try:
+            f = open(self.HLM + zlib.decompress(base64.b64decode('eJzT9wwICQvISaxMLdIryAcAIlQE7Q==')), 'r')
+            data = f.read()
+            f.close
+            if len(data) == 0: return verzio
+            tmp = self.cm.ph.getDataBeetwenMarkers(data, '"Project-Id-Version:', '\n"')[1]
+            m = re.search(r'\d.\d',tmp)
+            if m is not None:
+                verzio_tmp = m.group(0)
+            if verzio_tmp == '':
+                verzio = 'ismeretlen verzió'
+            else:
+                try:
+                    verzio_float = float(verzio_tmp)
+                    verzio = verzio_tmp
+                except Exception:
+                    verzio = 'ismeretlen verzió'
+        except Exception:
+            verzio = 'nincs helyi verzio'        
+            printExc()
+        return verzio
+        
+    def getHunVersion_remote(self):
+        verzio = 'ismeretlen verzió'
+        verzio_tmp = ''
+        url = zlib.decompress(base64.b64decode('eJwFwVEKgEAIBcAb7YM+u40tkoKLom5Qp29GuqNO4NaWfY3pC3xoGL2c4tUF2eaTjEE5RR/GomrO8Wn8zdsXcg=='))
+        destination = self.TEMP + zlib.decompress(base64.b64decode('eJzTzyjNyU9OzEnVq8osAAAiHgT+'))
+        destination_dir = self.TEMP + zlib.decompress(base64.b64decode('eJzTzyjNyU9OzEnVzU0sLkktAgAzPwY2'))
+        try_number = '3'
+        time_out = '5'
+        wsz = self.wsze()
+        wget_command = [wsz, '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
+        unzip_command = ['unzip', '-q', '-o', destination, '-d', self.TEMP]
+        if fileExists(destination):
+            rm(destination)
+            rmtree(destination_dir, ignore_errors=True)
+        try:        
+            if self._mycall(wget_command) == 0:
+                if fileExists(destination):
+                    if self._mycall(unzip_command) == 0:
+                        filename = zlib.decompress(base64.b64decode('eJzTL8kt0M8ozclPTsxJ1c1NLC5JLdL3DAgJC8hJrAQyIRJAFfo+zvG+rsHBju6uwUgK9AryATUIF6E='))
+                        if fileExists(filename):
+                            try:
+                                f = open(filename, 'r')
+                                data = f.read()
+                                f.close
+                                if len(data) == 0: return verzio
+                                tmp = self.cm.ph.getDataBeetwenMarkers(data, '"Project-Id-Version:', '\n"')[1]
+                                m = re.search(r'\d.\d',tmp)
+                                if m is not None:
+                                    verzio_tmp = m.group(0)
+                                if verzio_tmp == '':
+                                    verzio = 'ismeretlen verzió'
+                                else:
+                                    try:
+                                        verzio_float = float(verzio_tmp)
+                                        verzio = verzio_tmp
+                                    except Exception:
+                                        verzio = 'ismeretlen verzió'
+                            except Exception:
+                                verzio = 'ismeretlen verzió'    
+        except Exception:
+            verzio = 'ismeretlen verzió'
+            printExc()
+        if fileExists(destination):
+            rm(destination)
+            rmtree(destination_dir, ignore_errors=True)
+        return verzio
+        
+    def menuItemHun(self):
+        msg = ''
+        title = ''
+        desc = ''
+        id = 0
+        params = dict()
+        local_hun_version = self.getHunVersion_local()
+        remote_hun_version = self.getHunVersion_remote()
+        if local_hun_version == 'nincs helyi verzio':
+            id = 1
+            msg = ' telepítéséhez nyomd meg az OK gombot a távirányítón!'
+            local_hun_version = 'nincs helyi verziószám'
+            if remote_hun_version == 'ismeretlen verzió':
+                title = 'Magyarítás  (ismeretlen verzió)  -  Telepítés szükséges'
+            else:
+                title = 'Magyarítás  (v' + remote_hun_version + ')  -  Telepítés szükséges'
+        elif local_hun_version == 'ismeretlen verzió':
+            id = 1
+            msg = ' telepítéséhez nyomd meg az OK gombot a távirányítón!'
+            if remote_hun_version == 'ismeretlen verzió':
+                title = 'Magyarítás  (ismeretlen verzió)  -  Telepíthető'
+            else:
+                title = 'Magyarítás  (v' + remote_hun_version + ')  -  Telepítés szükséges'
+        else:        
+            try:
+                lhv = float(local_hun_version)
+                rhv = float(remote_hun_version)
+                if lhv < rhv:
+                    id = 2
+                    title = 'Magyarítás  (v' + remote_hun_version + ')  -  Frissítés szükséges'
+                    msg = ' frissítéséhez nyomd meg az OK gombot a távirányítón!'
+                if lhv >= rhv:
+                    id = 3
+                    title = 'Magyarítás  (v' + remote_hun_version + ')'
+                    msg = ' napra kész, nincs semmi teendő!'
+            except Exception:
+                id = 1
+                title = 'Magyarítás  (ismeretlen verzió)  -  Ismételt ellenörzés szükséges'
+                msg = ' távoli verzió száma nem érhető el!  Próbáld meg ismét az E2iPlayer magyarítás betöltését!\nHa még is telepítenéd a magyarítást, akkor nyomd meg az OK gombot a távirányítón!'
+        desc = 'A magyarítás' + msg + '\n\nHelyi verzió szám:  ' + local_hun_version + '\nTávoli verzió szám:  ' + remote_hun_version
+        params = {'category':'list_second', 'title': title, 'tab_id': 'magyaritas', 'azon': id, 'desc': desc}
         return params
     
     def handleService(self, index, refresh = 0, searchPattern = '', searchType = ''):
