@@ -100,7 +100,7 @@ class updatehosts(CBaseHostClass):
         try:
             msg_host = 'Magyar Hostok listája\n\nA hostok betöltése több időt vehet igénybe!  A letöltés ideje függ az internet sebességétől, illetve a gyűjtő oldal leterheltségétől is...\nVárd meg míg a hostok listája megjelenik. Ez eltarthat akár 3 percig is.\nA host gyűjtő oldalán néha hiba előfordulhat...'
             msg_magyar = 'Az E2iPlayer magyarítását lehet itt végrehajtani.'
-            msg_urllist = 'Blindspot féle urllist.stream fájlt lehet itt telepíteni, frissíteni.\n\nA stream fájlt az "Urllists player" hosttal (Egyéb csoport) lehet lejátszani a Live streams menüpontban... '
+            msg_urllist = 'Blindspot féle urllist.stream fájlt lehet itt telepíteni, frissíteni.\nA fájl a /hdd könyvtárba települ, s így annak a könyvtárnak léteznie kell!\n\nA stream fájlt az "Urllists player" hosttal (Egyéb csoport) lehet lejátszani a Live streams menüpontban... '
             MAIN_CAT_TAB = [{'category': 'list_main', 'title': 'Magyar hostok', 'tab_id': 'hostok', 'desc': msg_host},
                             {'category': 'list_main', 'title': 'E2iPlayer magyarítása', 'tab_id': 'magyaritas', 'desc': msg_magyar},
                             {'category': 'list_main', 'title': 'Urllist fájl telepítése', 'tab_id': 'urllist', 'desc': msg_urllist}
@@ -311,7 +311,7 @@ class updatehosts(CBaseHostClass):
                                     msg = 'Hiba: 302 - Nem létezik a letöltött stream fájl'    
                             else:
                                 hiba = True
-                                msg = 'Hiba: 303 - Nem sikerült a stream fájl másolása'
+                                msg = 'Hiba: 303 - Nem sikerült a stream fájl másolása. A /hdd könyvtárnak léteznie kell'
                         else:
                             hiba = True
                             msg = 'Hiba: 304 - Nem sikerült a fájl kitömörítése!'
