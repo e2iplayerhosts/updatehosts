@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-04-17 by Alec - updatehosts HU host telepítő
+# 2019-04-18 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "1.4"
+HOST_VERSION = "1.5"
 ###################################################
 # LOCAL import
 ###################################################
@@ -525,12 +525,9 @@ class updatehosts(CBaseHostClass):
         bsz = ''
         try:
             whwg = config.plugins.iptvplayer.wgetpath.value
-            if whwg == 'wget' or whwg == '/usr/bin/wget':
+            bsz = whwg
+            if whwg == 'wget':
                 bsz = '/usr/bin/wget'
-            if whwg == '/usr/bin/fullwget':
-                bsz = '/usr/bin/fullwget'
-            ##if whwg == GetBinDir('wget', '')
-            ##    bsz = GetBinDir('wget', '')
         except Exception:
             printExc()
         return bsz
