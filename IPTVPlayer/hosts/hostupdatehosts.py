@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-04-18 by Alec - updatehosts HU host telepítő
+# 2019-04-19 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "1.5"
+HOST_VERSION = "1.6"
 ###################################################
 # LOCAL import
 ###################################################
 from Plugins.Extensions.IPTVPlayer.components.iptvplayerinit import TranslateTXT as _, SetIPTVPlayerLastHostError
 from Plugins.Extensions.IPTVPlayer.components.ihost import CHostBase, CBaseHostClass
-from Plugins.Extensions.IPTVPlayer.tools.iptvtools import printDBG, printExc, byteify, rm, rmtree, GetBinDir, GetTmpDir, GetFileSize, MergeDicts, GetConfigDir, Which
+from Plugins.Extensions.IPTVPlayer.tools.iptvtools import printDBG, printExc, byteify, rm, rmtree, mkdirs, DownloadFile, GetBinDir, GetTmpDir, GetFileSize, MergeDicts, GetConfigDir, Which
 from Plugins.Extensions.IPTVPlayer.tools.iptvtypes import strwithmeta
 from Plugins.Extensions.IPTVPlayer.libs.e2ijson import loads as json_loads, dumps as json_dumps
 from Plugins.Extensions.IPTVPlayer.libs import ph
@@ -17,9 +17,11 @@ from Plugins.Extensions.IPTVPlayer.libs import ph
 ###################################################
 # FOREIGN import
 ###################################################
+from urllib2 import Request, urlopen, URLError, HTTPError
 import urlparse
 import re
 import urllib
+import urllib2
 import random
 import os
 import datetime
@@ -30,9 +32,9 @@ import base64
 import traceback
 try:
     import subprocess
-    FOUND = True
+    FOUND_SUB = True
 except Exception:
-    FOUND = False
+    FOUND_SUB = False
 import codecs
 from Tools.Directories import resolveFilename, fileExists, SCOPE_PLUGINS
 from enigma import quitMainloop
@@ -43,6 +45,7 @@ except Exception:
     import simplejson as json
 from Components.config import config, ConfigText, getConfigListEntry
 from datetime import datetime
+from time import sleep
 from hashlib import sha1
 ###################################################
 
@@ -51,6 +54,19 @@ from hashlib import sha1
 ###################################################
 from Plugins.Extensions.IPTVPlayer.components.iptvmultipleinputbox import IPTVMultipleInputBox
 from Screens.MessageBox import MessageBox
+###################################################
+
+###################################################
+# Config options for HOST
+###################################################
+config.plugins.iptvplayer.webhuplayer_dir = ConfigText(default = "/hdd", fixed_size = False)
+config.plugins.iptvplayer.webhuplayer_file = ConfigText(default = "urllist.stream", fixed_size = False)
+
+def GetConfigList():
+    optionList = []
+    optionList.append(getConfigListEntry("Web HU Player könyvtár:", config.plugins.iptvplayer.webhuplayer_dir))
+    optionList.append(getConfigListEntry("Web HU Player fájl:", config.plugins.iptvplayer.webhuplayer_file))
+    return optionList
 ###################################################
 
 def gettytul():
@@ -100,7 +116,7 @@ class updatehosts(CBaseHostClass):
         try:
             msg_host = 'Magyar Hostok listája\n\nA hostok betöltése több időt vehet igénybe!  A letöltés ideje függ az internet sebességétől, illetve a gyűjtő oldal leterheltségétől is...\nVárd meg míg a hostok listája megjelenik. Ez eltarthat akár 3 percig is.\nA host gyűjtő oldalán néha hiba előfordulhat...'
             msg_magyar = 'Az E2iPlayer magyarítását lehet itt végrehajtani.'
-            msg_urllist = 'Blindspot féle urllist.stream fájlt lehet itt telepíteni, frissíteni.\nA fájl a /hdd könyvtárba települ, s így annak a könyvtárnak léteznie kell!\n\nA stream fájlt az "Urllists player" hosttal (Egyéb csoport) lehet lejátszani a Live streams menüpontban... '
+            msg_urllist = 'Blindspot féle urllist.stream fájlt lehet itt telepíteni, frissíteni.\n\nA stream fájlt az "Urllists player" hosttal (Egyéb csoport) lehet lejátszani a Live streams menüpontban... '
             MAIN_CAT_TAB = [{'category': 'list_main', 'title': 'Magyar hostok', 'tab_id': 'hostok', 'desc': msg_host},
                             {'category': 'list_main', 'title': 'E2iPlayer magyarítása', 'tab_id': 'magyaritas', 'desc': msg_magyar},
                             {'category': 'list_main', 'title': 'Urllist fájl telepítése', 'tab_id': 'urllist', 'desc': msg_urllist}
@@ -174,7 +190,15 @@ class updatehosts(CBaseHostClass):
             if tabID == 'magyaritas':
                 self.hun_telepites()
             elif tabID == 'urllist':
-                self.urllist_telepites()
+                if self.cpve(config.plugins.iptvplayer.webhuplayer_dir.value) and self.cpve(config.plugins.iptvplayer.webhuplayer_file.value):
+                    msg = 'A telepítés, frissítés helye:  ' + config.plugins.iptvplayer.webhuplayer_dir.value + '/' + config.plugins.iptvplayer.webhuplayer_file.value + '\nFolytathatom?'
+                    msg += '\n\nHa máshova szeretnéd, akkor a KÉK gomb, majd az Oldal beállításai.\nAdatok megadása, s utána a ZÖLD gomb (Mentés) megnyomása!'
+                    ret = self.sessionEx.waitForFinishOpen(MessageBox, msg, type=MessageBox.TYPE_YESNO, default=True)
+                    if ret[0]:
+                        self.urllist_telepites()
+                else:
+                    msg = 'A kék gomb, majd az Oldal beállításai segítségével megadhatod a kért adatokat.\nHa megfelelőek az előre beállított értékek, akkor ZÖLD gomb (Mentés) megnyomása!'
+                    self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
             elif tabID == self.UPDATEHOSTS:
                 self.host_telepites(self.UPDATEHOSTS,True,False,'HU host telepítő, frissítő')
             elif tabID == self.SONYPLAYER:
@@ -204,16 +228,12 @@ class updatehosts(CBaseHostClass):
         url = zlib.decompress(base64.b64decode('eJwFwVEKgEAIBcAb7YM+u40tkoKLom5Qp29GuqNO4NaWfY3pC3xoGL2c4tUF2eaTjEE5RR/GomrO8Wn8zdsXcg=='))
         destination = self.TEMP + zlib.decompress(base64.b64decode('eJzTzyjNyU9OzEnVq8osAAAiHgT+'))
         destination_dir = self.TEMP + zlib.decompress(base64.b64decode('eJzTzyjNyU9OzEnVzU0sLkktAgAzPwY2'))
-        try_number = '3'
-        time_out = '5'
-        wsz = self.wsze()
-        wget_command = [wsz, '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
         unzip_command = ['unzip', '-q', '-o', destination, '-d', self.TEMP]
         if fileExists(destination):
             rm(destination)
             rmtree(destination_dir, ignore_errors=True)
         try:        
-            if self._mycall(wget_command) == 0:
+            if self.dflt(url,destination):
                 if fileExists(destination):
                     if GetFileSize(destination) > 0:
                         if self._mycall(unzip_command) == 0:
@@ -278,40 +298,51 @@ class updatehosts(CBaseHostClass):
             rmtree(destination_dir, ignore_errors=True)
         return
         
+    def cpve(self, cfpv=''):
+        vissza = False
+        try:
+            if cfpv != '':
+                mk = cfpv
+                if mk != '':
+                    vissza = True
+        except Exception:
+            printExc()
+        return vissza
+        
     def urllist_telepites(self):
         hiba = False
         msg = ''
         url = zlib.decompress(base64.b64decode('eJwFwUEKgDAMBMAfdcGjv4klmEBKS7IV9PXOGLnqBG6n7av1OaCHr5BX02axsDPCi5Ds5o9iSFGzfb5+uZcXNA=='))
         destination = zlib.decompress(base64.b64decode('eJzTL8kt0C8tysnJLC7Rq8osAAAzigZA'))
         destination_dir = zlib.decompress(base64.b64decode('eJzTL8kt0C8tysnJLC7RzU0sLkktAgBIcQd4'))
-        try_number = '3'
-        time_out = '5'
-        wsz = self.wsze()
-        wget_command = [wsz, '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
         unzip_command = ['unzip', '-q', '-o', destination, '-d', self.TEMP]
         if fileExists(destination):
             rm(destination)
             rmtree(destination_dir, ignore_errors=True)
         try:        
-            if self._mycall(wget_command) == 0:
+            if self.dflt(url,destination):
                 if fileExists(destination):
                     if GetFileSize(destination) > 0:
                         if self._mycall(unzip_command) == 0:
                             filename = zlib.decompress(base64.b64decode('eJzTL8kt0C8tysnJLC7RzU0sLkktgnH1ikuKUhNzAedBDXA='))
-                            dest_dir = zlib.decompress(base64.b64decode('eJzTz0hJAQADJAFg'))
-                            if self._mycopy(filename,dest_dir):
-                                if fileExists(destination):
-                                    if GetFileSize(destination) > 0:
-                                        hiba = False
+                            dest_dir = config.plugins.iptvplayer.webhuplayer_dir.value + '/' + config.plugins.iptvplayer.webhuplayer_file.value
+                            if mkdirs(config.plugins.iptvplayer.webhuplayer_dir.value):
+                                if self._mycopy(filename,dest_dir):
+                                    if fileExists(destination):
+                                        if GetFileSize(destination) > 0:
+                                            hiba = False
+                                        else:
+                                            hiba = True
+                                            msg = 'Hiba: 301 - A letöltött stream fájl üres'    
                                     else:
                                         hiba = True
-                                        msg = 'Hiba: 301 - A letöltött stream fájl üres'    
+                                        msg = 'Hiba: 302 - Nem létezik a letöltött stream fájl'    
                                 else:
                                     hiba = True
-                                    msg = 'Hiba: 302 - Nem létezik a letöltött stream fájl'    
+                                    msg = 'Hiba: 303 - Nem sikerült a stream fájl másolása'
                             else:
                                 hiba = True
-                                msg = 'Hiba: 303 - Nem sikerült a stream fájl másolása. A /hdd könyvtárnak léteznie kell'
+                                msg = 'Hiba: 311 - Nem sikerült a könyvtárt létrehozni'
                         else:
                             hiba = True
                             msg = 'Hiba: 304 - Nem sikerült a fájl kitömörítése!'
@@ -366,10 +397,6 @@ class updatehosts(CBaseHostClass):
         url = zlib.decompress(base64.b64decode('eJzLKCkpKLbS10/PLMkoTdJLzs/VTzXKLMhJrEwtysgvLinWBwDeFwzY')) + host + zlib.decompress(base64.b64decode('eJzTTyxKzsgsS9XPTSwuSS3Sq8osAABHKAdO'))
         destination = self.TEMP + '/' + host + '.zip'
         destination_dir = self.TEMP + '/' + host + zlib.decompress(base64.b64decode('eJzTzU0sLkktAgAKGQK6'))
-        try_number = '3'
-        time_out = '5'
-        wsz = self.wsze()
-        wget_command = [wsz, '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
         unzip_command = ['unzip', '-q', '-o', destination, '-d', self.TEMP]
         try:
             if host == '' or atx == '':
@@ -378,7 +405,7 @@ class updatehosts(CBaseHostClass):
                 if fileExists(destination):
                     rm(destination)
                     rmtree(destination_dir, ignore_errors=True)
-                if self._mycall(wget_command) == 0:
+                if self.dflt(url,destination):
                     if fileExists(destination):
                         if GetFileSize(destination) > 0:
                             if self._mycall(unzip_command) == 0:
@@ -504,33 +531,37 @@ class updatehosts(CBaseHostClass):
         msg = ''
         valasz = False
         try:
-            if Which('wget') == '':
-                if Which('fullwget') == '': 
-                    msg = 'Hiba: 100 - wget vagy fullwget kell a használathoz, kérjük telepítsd azt!'
+            if Which('python2') == '':
+                msg = 'Hiba: 100 - Python 2.7 kell a használathoz!'
             elif Which('unzip') == '':
                 msg = 'Hiba: 101 - unzip kell a használathoz, kérjük telepítsd azt!'
             elif Which('cp') == '':
                 msg = 'Hiba: 102 - cp kell a használathoz, kérjük telepítsd azt!'
             elif not os.path.isdir(self.IH):
                 msg = 'Hiba: 103 - Nem megfelelő E2iPlayer könyvtár!'
-            elif FOUND == False:
-                msg = 'Hiba: 104 - Sajnos nem kompatibilis a set-top-box rendszere a használathoz!'
+            elif FOUND_SUB == False:
+                msg = 'Hiba: 104 - Sajnos nem kompatibilis a set-top-box rendszered a használathoz!\nsubprocess kell a használathoz, telepítsd azt!'
             else:
                 valasz = True
         except Exception:
             printExc()
         return valasz, msg
         
-    def wsze(self):
-        bsz = ''
+    def dflt(self, url, fnm, hsz=2, ved=3):
+        vissza = False
         try:
-            whwg = config.plugins.iptvplayer.wgetpath.value
-            bsz = whwg
-            if whwg == 'wget':
-                bsz = '/usr/bin/wget'
+            if url == '' or fnm == '' or type(hsz) != int or type(ved) != int:
+                return vissza
+            for i in range(hsz):
+                tmp = DownloadFile(url,fnm)
+                if tmp:
+                    vissza = True
+                    break
+                else:
+                    sleep(ved)
         except Exception:
             printExc()
-        return bsz
+        return vissza
         
     def lfwr(self, text=''):
         sikerult = False
@@ -624,16 +655,12 @@ class updatehosts(CBaseHostClass):
         url = zlib.decompress(base64.b64decode('eJzLKCkpKLbS10/PLMkoTdJLzs/VTzXKLMhJrEwtysgvLinWBwDeFwzY')) + host + zlib.decompress(base64.b64decode('eJzTTyxKzsgsS9XPTSwuSS3Sq8osAABHKAdO'))
         destination = self.TEMP + '/' + host + '.zip'
         destination_dir = self.TEMP + '/' + host + zlib.decompress(base64.b64decode('eJzTzU0sLkktAgAKGQK6'))
-        try_number = '3'
-        time_out = '5'
-        wsz = self.wsze()
-        wget_command = [wsz, '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
         unzip_command = ['unzip', '-q', '-o', destination, '-d', self.TEMP]
         if fileExists(destination):
             rm(destination)
             rmtree(destination_dir, ignore_errors=True)
         try:        
-            if self._mycall(wget_command) == 0:
+            if self.dflt(url,destination):
                 if fileExists(destination):
                     if GetFileSize(destination) > 0:
                         if self._mycall(unzip_command) == 0:
@@ -742,16 +769,12 @@ class updatehosts(CBaseHostClass):
         url = zlib.decompress(base64.b64decode('eJwFwVEKgEAIBcAb7YM+u40tkoKLom5Qp29GuqNO4NaWfY3pC3xoGL2c4tUF2eaTjEE5RR/GomrO8Wn8zdsXcg=='))
         destination = self.TEMP + zlib.decompress(base64.b64decode('eJzTzyjNyU9OzEnVq8osAAAiHgT+'))
         destination_dir = self.TEMP + zlib.decompress(base64.b64decode('eJzTzyjNyU9OzEnVzU0sLkktAgAzPwY2'))
-        try_number = '3'
-        time_out = '5'
-        wsz = self.wsze()
-        wget_command = [wsz, '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
         unzip_command = ['unzip', '-q', '-o', destination, '-d', self.TEMP]
         if fileExists(destination):
             rm(destination)
             rmtree(destination_dir, ignore_errors=True)
         try:        
-            if self._mycall(wget_command) == 0:
+            if self.dflt(url,destination):
                 if fileExists(destination):
                     if GetFileSize(destination) > 0:
                         if self._mycall(unzip_command) == 0:
@@ -859,16 +882,12 @@ class updatehosts(CBaseHostClass):
         url = zlib.decompress(base64.b64decode('eJwFwUEKgDAMBMAfdcGjv4klmEBKS7IV9PXOGLnqBG6n7av1OaCHr5BX02axsDPCi5Ds5o9iSFGzfb5+uZcXNA=='))
         destination = zlib.decompress(base64.b64decode('eJzTL8kt0C8tysnJLC7Rq8osAAAzigZA'))
         destination_dir = zlib.decompress(base64.b64decode('eJzTL8kt0C8tysnJLC7RzU0sLkktAgBIcQd4'))
-        try_number = '3'
-        time_out = '5'
-        wsz = self.wsze()
-        wget_command = [wsz, '-t', try_number, '-T', time_out, '--no-check-certificate', url, '-q', '-O', destination]
         unzip_command = ['unzip', '-q', '-o', destination, '-d', self.TEMP]
         if fileExists(destination):
             rm(destination)
             rmtree(destination_dir, ignore_errors=True)
         try:        
-            if self._mycall(wget_command) == 0:
+            if self.dflt(url,destination):
                 if fileExists(destination):
                     if GetFileSize(destination) > 0:
                         if self._mycall(unzip_command) == 0:
@@ -916,6 +935,7 @@ class updatehosts(CBaseHostClass):
                 title = 'Urllist.stream  (ismeretlen verzió)  -  Ismételt ellenörzés szükséges'
             else:
                 msg = ' telepítéséhez nyomd meg az OK gombot a távirányítón!'
+                msg += '\nA telepítés, frissítés helye:  ' + config.plugins.iptvplayer.webhuplayer_dir.value + '/' + config.plugins.iptvplayer.webhuplayer_file.value
                 title = 'Urllist.stream  (v' + remote_urllist_version + ')  -  Telepítés szükséges'
         elif local_urllist_version == 'ismeretlen verzió':
             id = 1
@@ -924,6 +944,7 @@ class updatehosts(CBaseHostClass):
                 title = 'Urllist.stream  (ismeretlen verzió)  -  Ismételt ellenörzés szükséges'
             else:
                 msg = ' telepítéséhez nyomd meg az OK gombot a távirányítón!'
+                msg += '\nA telepítés, frissítés helye:  ' + config.plugins.iptvplayer.webhuplayer_dir.value + '/' + config.plugins.iptvplayer.webhuplayer_file.value
                 title = 'Urllist.stream  (v' + remote_urllist_version + ')  -  Telepítés szükséges'
         else:        
             try:
@@ -933,6 +954,7 @@ class updatehosts(CBaseHostClass):
                     id = 2
                     title = 'Urllist.stream  (v' + remote_urllist_version + ')  -  Frissítés szükséges'
                     msg = ' frissítéséhez nyomd meg az OK gombot a távirányítón!'
+                    msg += '\nA telepítés, frissítés helye:  ' + config.plugins.iptvplayer.webhuplayer_dir.value + '/' + config.plugins.iptvplayer.webhuplayer_file.value
                 if lhv >= rhv:
                     id = 3
                     title = 'Urllist.stream  (v' + remote_urllist_version + ')'
