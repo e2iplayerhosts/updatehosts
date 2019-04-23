@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-04-19 by Alec - updatehosts HU host telepítő
+# 2019-04-23 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "1.6"
+HOST_VERSION = "1.7"
 ###################################################
 # LOCAL import
 ###################################################
@@ -97,6 +97,7 @@ class updatehosts(CBaseHostClass):
         self.MOOVIECC = zlib.decompress(base64.b64decode('eJzLzc8vy0xNTgYAD10DVg=='))
         self.MOZICSILLAG = zlib.decompress(base64.b64decode('eJzLza/KTC7OzMlJTAcAHDMEnw=='))
         self.FILMEZZ = zlib.decompress(base64.b64decode('eJxLy8zJTa2qAgALtAMC'))
+        self.WEBHUPLAYER = zlib.decompress(base64.b64decode('eJwrT03KKC3ISaxMLQIAG+YEqQ=='))
         self.AUTOHU = zlib.decompress(base64.b64decode('eJxLLC3JzygFAAj3Apc='))
         self.defaultParams = {'header':self.HEADER, 'use_cookie': False, 'load_cookie': False, 'save_cookie': False, 'cookiefile': self.COOKIE_FILE}
     
@@ -152,7 +153,8 @@ class updatehosts(CBaseHostClass):
                 HOST_CAT_TAB.append(self.menuItem(self.MOOVIECC))
                 HOST_CAT_TAB.append(self.menuItem(self.MOZICSILLAG))
                 HOST_CAT_TAB.append(self.menuItem(self.FILMEZZ))
-                #HOST_CAT_TAB.append(self.menuItem(self.AUTOHU)) nem megy még
+                HOST_CAT_TAB.append(self.menuItem(self.WEBHUPLAYER))
+                HOST_CAT_TAB.append(self.menuItem(self.AUTOHU))
                 HOST_CAT_TAB = sorted(HOST_CAT_TAB, key=lambda i: (i['azon'], i['title']))
                 self.listsTab(HOST_CAT_TAB, cItem)
             else:
@@ -215,6 +217,8 @@ class updatehosts(CBaseHostClass):
                 self.host_telepites(self.MOZICSILLAG,True,False,'https://mozicsillag.me/')
             elif tabID == self.FILMEZZ:
                 self.host_telepites(self.FILMEZZ,True,False,'https://filmezz.eu/')
+            elif tabID == self.WEBHUPLAYER:
+                self.host_telepites(self.WEBHUPLAYER,True,False,'Web HU Player')
             elif tabID == self.AUTOHU:
                 self.host_telepites(self.AUTOHU,True,False,'auto.HU')
             else:
