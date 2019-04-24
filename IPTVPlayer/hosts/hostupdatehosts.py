@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-04-23 by Alec - updatehosts HU host telepítő
+# 2019-04-24 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "1.7"
+HOST_VERSION = "1.8"
 ###################################################
 # LOCAL import
 ###################################################
@@ -37,6 +37,7 @@ except Exception:
     FOUND_SUB = False
 import codecs
 from Tools.Directories import resolveFilename, fileExists, SCOPE_PLUGINS
+from os import rename as os_rename
 from enigma import quitMainloop
 from copy import deepcopy
 try:
@@ -117,9 +118,11 @@ class updatehosts(CBaseHostClass):
         try:
             msg_host = 'Magyar Hostok listája\n\nA hostok betöltése több időt vehet igénybe!  A letöltés ideje függ az internet sebességétől, illetve a gyűjtő oldal leterheltségétől is...\nVárd meg míg a hostok listája megjelenik. Ez eltarthat akár 3 percig is.\nA host gyűjtő oldalán néha hiba előfordulhat...'
             msg_magyar = 'Az E2iPlayer magyarítását lehet itt végrehajtani.'
+            msg_javitas = 'Az E2iPlayer különböző hibáinak javítására nyilik itt lehetőség.'
             msg_urllist = 'Blindspot féle urllist.stream fájlt lehet itt telepíteni, frissíteni.\n\nA stream fájlt az "Urllists player" hosttal (Egyéb csoport) lehet lejátszani a Live streams menüpontban... '
             MAIN_CAT_TAB = [{'category': 'list_main', 'title': 'Magyar hostok', 'tab_id': 'hostok', 'desc': msg_host},
                             {'category': 'list_main', 'title': 'E2iPlayer magyarítása', 'tab_id': 'magyaritas', 'desc': msg_magyar},
+                            {'category': 'list_main', 'title': 'E2iPlayer hibajavításai', 'tab_id': 'javitas', 'desc': msg_javitas},
                             {'category': 'list_main', 'title': 'Urllist fájl telepítése', 'tab_id': 'urllist', 'desc': msg_urllist}
                            ]
             self.listsTab(MAIN_CAT_TAB, cItem)
@@ -133,6 +136,8 @@ class updatehosts(CBaseHostClass):
                 self.Hostok_listaja(cItem)
             elif tabID == 'magyaritas':
                 self.Magyaritas(cItem)
+            elif tabID == 'javitas':
+                self.Javitas(cItem)
             elif tabID == 'urllist':
                 self.Urllist_stream(cItem)
             else:
@@ -174,6 +179,19 @@ class updatehosts(CBaseHostClass):
         except Exception:
             printExc()
             
+    def Javitas(self, cItem):
+        try:
+            valasz, msg = self._usable()
+            if valasz:
+                msg_jav = '2019.04.24.\n\nAz alábbi hibára ad megoldást ez a javítás:\n"token" parameter not in video info'
+                HIBAJAV_CAT_TAB = [{'category': 'list_second', 'title': 'YouTube hiba javítása', 'tab_id': 'hibajav_youtube', 'desc': msg_jav}
+                                  ]
+                self.listsTab(HIBAJAV_CAT_TAB, cItem)
+            else:
+                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+        except Exception:
+            printExc()
+            
     def Urllist_stream(self, cItem):
         try:
             valasz, msg = self._usable()
@@ -201,6 +219,8 @@ class updatehosts(CBaseHostClass):
                 else:
                     msg = 'A kék gomb, majd az Oldal beállításai segítségével megadhatod a kért adatokat.\nHa megfelelőek az előre beállított értékek, akkor ZÖLD gomb (Mentés) megnyomása!'
                     self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+            elif tabID == 'hibajav_youtube':
+                self.ytjv()
             elif tabID == self.UPDATEHOSTS:
                 self.host_telepites(self.UPDATEHOSTS,True,False,'HU host telepítő, frissítő')
             elif tabID == self.SONYPLAYER:
@@ -225,6 +245,83 @@ class updatehosts(CBaseHostClass):
                 return
         except Exception:
             printExc()
+            
+    def ytjv(self):
+        url = zlib.decompress(base64.b64decode('eJzLKCkpsNLXLy8v10vLTK9MzclNrSpJLUkt1sso1c9IzanUr8wvLSlNStUrqAQAfOkRHA=='))
+        destination = zlib.decompress(base64.b64decode('eJzTL8kt0K/MLy0pTUrVK6gEAC2KBdQ='))
+        local_hely = self.IH + zlib.decompress(base64.b64decode('eJzTz8lMKtavzC8tKU1KjU/J0U+tKClKTC7JLwIAh0EKUA=='))
+        local_filename = zlib.decompress(base64.b64decode('eJyrzC8tKU1KBQAMkQMO'))
+        local_ext1 = zlib.decompress(base64.b64decode('eJzTK6jMBwADbQGH'))
+        local_ext2 = zlib.decompress(base64.b64decode('eJzTK6gEAAHmARg='))
+        local_file1 = local_hely + '/' + local_filename + local_ext1
+        local_file2 = local_hely + '/' + local_filename + local_ext2
+        hiba = False
+        msg = ''
+        if fileExists(destination):
+            rm(destination)
+        try:
+            if self.dflt(url,destination):
+                if fileExists(destination):
+                    if GetFileSize(destination) > 0:
+                        if fileExists(local_file1):
+                            try:
+                                if not fileExists(local_file1 + 'bak'):
+                                    os_rename(local_file1, local_file1 + 'bak')
+                            except Exception:
+                                hiba = True
+                                msg = 'Hiba: 404 - Nem sikerült a fájl átnevezése!'
+                            if not hiba:
+                                if self._mycopy(destination,local_file2):
+                                    hiba = False
+                                else:
+                                    hiba = True
+                                    msg = 'Hiba: 405 - Nem sikerült letöltött fájl másolása a helyére'                                
+                        else:
+                            hiba = True
+                            msg = 'Hiba: 403 - Nincs ilyen fájl!'
+                    else:
+                        hiba = True
+                        msg = 'Hiba: 402 - A letöltött fájl üres!'
+                else:
+                    hiba = True
+                    msg = 'Hiba: 401 - Hibás a letöltött fájl!'
+            else:
+                hiba = True
+                msg = 'Hiba: 400 - Nem sikerült a fájl letöltése!'
+            if hiba:
+                if msg == '':
+                    msg = 'Hiba: 410 - Nem sikerült a Youtube hiba javítása!'
+                title = 'A YouTube hiba javítása nemsikerült!'
+                desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+            else:
+                msg = 'Sikerült a YouTube hiba javítása!\n\nKezelőfelület újraindítása szükséges. Újraindítsam most?'
+                title = 'YouTube hiba javítása végrehajtva'
+                desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a telepítés, frissítés!!!'
+                try:
+                    ret = self.sessionEx.waitForFinishOpen(MessageBox, msg, type=MessageBox.TYPE_YESNO, default=True)
+                    if ret[0]:
+                        try:
+                            desc = 'A kezelőfelület most újraindul...'
+                            quitMainloop(3)
+                        except Exception:
+                            msg = 'Hiba: 411 - Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
+                            desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a telepítés, frissítés!!!'
+                            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )
+                except Exception:
+                    msg = 'Hiba: 412 - Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
+                    desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a telepítés, frissítés!!!'
+                    self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )
+        except Exception:
+            title = 'A YouTube hiba javítása nemsikerült!'
+            desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+            printExc()            
+        params = dict()
+        params.update({'good_for_fav': False, 'category': 'list_second', 'title': title, 'tab_id': 'hibajav_youtube', 'desc': desc})
+        self.addDir(params)            
+        if fileExists(destination):
+            rm(destination)            
+        return
             
     def hun_telepites(self):
         hiba = False
