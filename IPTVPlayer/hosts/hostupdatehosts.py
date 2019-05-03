@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-04-24 by Alec - updatehosts HU host telepítő
+# 2019-05-03 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "1.8"
+HOST_VERSION = "1.9"
 ###################################################
 # LOCAL import
 ###################################################
@@ -44,7 +44,7 @@ try:
     import json
 except Exception:
     import simplejson as json
-from Components.config import config, ConfigText, getConfigListEntry
+from Components.config import config, ConfigText, ConfigYesNo, getConfigListEntry
 from datetime import datetime
 from time import sleep
 from hashlib import sha1
@@ -60,13 +60,15 @@ from Screens.MessageBox import MessageBox
 ###################################################
 # Config options for HOST
 ###################################################
-config.plugins.iptvplayer.webhuplayer_dir = ConfigText(default = "/hdd", fixed_size = False)
-config.plugins.iptvplayer.webhuplayer_file = ConfigText(default = "urllist.stream", fixed_size = False)
+config.plugins.iptvplayer.b_urllist_dir = ConfigText(default = "/hdd", fixed_size = False)
+config.plugins.iptvplayer.b_urllist_file = ConfigText(default = "urllist.stream", fixed_size = False)
+config.plugins.iptvplayer.updatehosts_id = ConfigYesNo(default = False)
 
 def GetConfigList():
     optionList = []
-    optionList.append(getConfigListEntry("Web HU Player könyvtár:", config.plugins.iptvplayer.webhuplayer_dir))
-    optionList.append(getConfigListEntry("Web HU Player fájl:", config.plugins.iptvplayer.webhuplayer_file))
+    optionList.append(getConfigListEntry("Urllist könyvtár:", config.plugins.iptvplayer.b_urllist_dir))
+    optionList.append(getConfigListEntry("Urllist fájl:", config.plugins.iptvplayer.b_urllist_file))
+    optionList.append(getConfigListEntry("id:", config.plugins.iptvplayer.updatehosts_id))
     return optionList
 ###################################################
 
@@ -100,6 +102,8 @@ class updatehosts(CBaseHostClass):
         self.FILMEZZ = zlib.decompress(base64.b64decode('eJxLy8zJTa2qAgALtAMC'))
         self.WEBHUPLAYER = zlib.decompress(base64.b64decode('eJwrT03KKC3ISaxMLQIAG+YEqQ=='))
         self.AUTOHU = zlib.decompress(base64.b64decode('eJxLLC3JzygFAAj3Apc='))
+        self.aid = config.plugins.iptvplayer.updatehosts_id.value
+        self.aid_ki = ''
         self.defaultParams = {'header':self.HEADER, 'use_cookie': False, 'load_cookie': False, 'save_cookie': False, 'cookiefile': self.COOKIE_FILE}
     
     def getPage(self, baseUrl, addParams = {}, post_data = None):
@@ -116,10 +120,31 @@ class updatehosts(CBaseHostClass):
 
     def listMainMenu(self, cItem):
         try:
-            msg_host = 'Magyar Hostok listája\n\nA hostok betöltése több időt vehet igénybe!  A letöltés ideje függ az internet sebességétől, illetve a gyűjtő oldal leterheltségétől is...\nVárd meg míg a hostok listája megjelenik. Ez eltarthat akár 3 percig is.\nA host gyűjtő oldalán néha hiba előfordulhat...'
-            msg_magyar = 'Az E2iPlayer magyarítását lehet itt végrehajtani.'
-            msg_javitas = 'Az E2iPlayer különböző hibáinak javítására nyilik itt lehetőség.'
-            msg_urllist = 'Blindspot féle urllist.stream fájlt lehet itt telepíteni, frissíteni.\n\nA stream fájlt az "Urllists player" hosttal (Egyéb csoport) lehet lejátszani a Live streams menüpontban... '
+            #vszt = self.muves('1')
+            n_hst = self.malvadst('1', '9', 'updatehosts_hostok')
+            if n_hst != '' and self.aid:
+                self.aid_ki = 'ID: ' + n_hst + '\n'
+            else:
+                self.aid_ki = ''
+            msg_host = self.aid_ki + 'Magyar Hostok listája\n\nA hostok betöltése több időt vehet igénybe!  A letöltés ideje függ az internet sebességétől, illetve a gyűjtő oldal leterheltségétől is...\nVárd meg míg a hostok listája megjelenik. Ez eltarthat akár 3 percig is.\nA host gyűjtő oldalán néha hiba előfordulhat...'
+            n_mgyr = self.malvadst('1', '9', 'updatehosts_magyaritas')
+            if n_mgyr != '' and self.aid:
+                self.aid_ki = 'ID: ' + n_mgyr + '\n'
+            else:
+                self.aid_ki = ''
+            msg_magyar = self.aid_ki + 'Az E2iPlayer magyarítását lehet itt végrehajtani.'
+            n_jav = self.malvadst('1', '9', 'updatehosts_javitas')
+            if n_jav != '' and self.aid:
+                self.aid_ki = 'ID: ' + n_jav + '\n'
+            else:
+                self.aid_ki = ''
+            msg_javitas = self.aid_ki + 'Az E2iPlayer különböző hibáinak javítására nyilik itt lehetőség.'
+            n_bulst = self.malvadst('1', '9', 'updatehosts_burllist')
+            if n_bulst != '' and self.aid:
+                self.aid_ki = 'ID: ' + n_bulst + '\n'
+            else:
+                self.aid_ki = ''
+            msg_urllist = self.aid_ki + 'Blindspot féle urllist.stream fájlt lehet itt telepíteni, frissíteni.\n\nA stream fájlt az "Urllists player" hosttal (Egyéb csoport) lehet lejátszani a Live streams menüpontban... '
             MAIN_CAT_TAB = [{'category': 'list_main', 'title': 'Magyar hostok', 'tab_id': 'hostok', 'desc': msg_host},
                             {'category': 'list_main', 'title': 'E2iPlayer magyarítása', 'tab_id': 'magyaritas', 'desc': msg_magyar},
                             {'category': 'list_main', 'title': 'E2iPlayer hibajavításai', 'tab_id': 'javitas', 'desc': msg_javitas},
@@ -149,6 +174,7 @@ class updatehosts(CBaseHostClass):
         try:
             valasz, msg = self._usable()
             if valasz:
+                self.susn('2', '9', 'updatehosts_hostok')
                 HOST_CAT_TAB = []
                 HOST_CAT_TAB.append(self.menuItem(self.UPDATEHOSTS))
                 HOST_CAT_TAB.append(self.menuItem(self.SONYPLAYER))
@@ -171,6 +197,7 @@ class updatehosts(CBaseHostClass):
         try:
             valasz, msg = self._usable()
             if valasz:
+                self.susn('2', '9', 'updatehosts_magyaritas')
                 HUN_CAT_TAB = []
                 HUN_CAT_TAB.append(self.menuItemHun())
                 self.listsTab(HUN_CAT_TAB, cItem)
@@ -183,7 +210,13 @@ class updatehosts(CBaseHostClass):
         try:
             valasz, msg = self._usable()
             if valasz:
-                msg_jav = '2019.04.24.\n\nAz alábbi hibára ad megoldást ez a javítás:\n"token" parameter not in video info'
+                self.susn('2', '9', 'updatehosts_javitas')
+                n_yjt = self.malvadst('1', '9', 'updatehosts_yt_javitas')
+                if n_yjt != '' and self.aid:
+                    self.aid_ki = 'ID: ' + n_yjt + '\n'
+                else:
+                    self.aid_ki = ''
+                msg_jav = self.aid_ki + '2019.04.24.\n\nAz alábbi hibára ad megoldást ez a javítás:\n"token" parameter not in video info'
                 HIBAJAV_CAT_TAB = [{'category': 'list_second', 'title': 'YouTube hiba javítása', 'tab_id': 'hibajav_youtube', 'desc': msg_jav}
                                   ]
                 self.listsTab(HIBAJAV_CAT_TAB, cItem)
@@ -196,6 +229,7 @@ class updatehosts(CBaseHostClass):
         try:
             valasz, msg = self._usable()
             if valasz:
+                self.susn('2', '9', 'updatehosts_burllist')
                 URLLIST_CAT_TAB = []
                 URLLIST_CAT_TAB.append(self.menuItemUrllist())
                 self.listsTab(URLLIST_CAT_TAB, cItem)
@@ -208,38 +242,51 @@ class updatehosts(CBaseHostClass):
         try:
             tabID = cItem.get('tab_id', '')
             if tabID == 'magyaritas':
+                self.susn('2', '9', 'updatehosts_e2_magyaritas')
                 self.hun_telepites()
             elif tabID == 'urllist':
-                if self.cpve(config.plugins.iptvplayer.webhuplayer_dir.value) and self.cpve(config.plugins.iptvplayer.webhuplayer_file.value):
-                    msg = 'A telepítés, frissítés helye:  ' + config.plugins.iptvplayer.webhuplayer_dir.value + '/' + config.plugins.iptvplayer.webhuplayer_file.value + '\nFolytathatom?'
+                if self.cpve(config.plugins.iptvplayer.b_urllist_dir.value) and self.cpve(config.plugins.iptvplayer.b_urllist_file.value):
+                    msg = 'A telepítés, frissítés helye:  ' + config.plugins.iptvplayer.b_urllist_dir.value + '/' + config.plugins.iptvplayer.b_urllist_file.value + '\nFolytathatom?'
                     msg += '\n\nHa máshova szeretnéd, akkor a KÉK gomb, majd az Oldal beállításai.\nAdatok megadása, s utána a ZÖLD gomb (Mentés) megnyomása!'
                     ret = self.sessionEx.waitForFinishOpen(MessageBox, msg, type=MessageBox.TYPE_YESNO, default=True)
                     if ret[0]:
+                        self.susn('2', '9', 'updatehosts_blind_urlist')
                         self.urllist_telepites()
                 else:
                     msg = 'A kék gomb, majd az Oldal beállításai segítségével megadhatod a kért adatokat.\nHa megfelelőek az előre beállított értékek, akkor ZÖLD gomb (Mentés) megnyomása!'
                     self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
             elif tabID == 'hibajav_youtube':
+                self.susn('2', '9', 'updatehosts_yt_javitas')
                 self.ytjv()
             elif tabID == self.UPDATEHOSTS:
+                self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.UPDATEHOSTS,True,False,'HU host telepítő, frissítő')
             elif tabID == self.SONYPLAYER:
+                self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.SONYPLAYER,True,True,'Sony Player HU')
             elif tabID == self.MYTVTELENOR:
+                self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.MYTVTELENOR,True,True,'https://mytv.telenor.hu/')
             elif tabID == self.RTLMOST:
+                self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.RTLMOST,True,True,'https://rtlmost.hu/')
             elif tabID == self.MINDIGO:
+                self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.MINDIGO,True,True,'https://tv.mindigo.hu/')
             elif tabID == self.MOOVIECC:
+                self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.MOOVIECC,True,False,'https://moovie.cc/')
             elif tabID == self.MOZICSILLAG:
+                self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.MOZICSILLAG,True,False,'https://mozicsillag.me/')
             elif tabID == self.FILMEZZ:
+                self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.FILMEZZ,True,False,'https://filmezz.eu/')
             elif tabID == self.WEBHUPLAYER:
+                self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.WEBHUPLAYER,True,False,'Web HU Player')
             elif tabID == self.AUTOHU:
+                self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.AUTOHU,True,False,'auto.HU')
             else:
                 return
@@ -426,8 +473,8 @@ class updatehosts(CBaseHostClass):
                     if GetFileSize(destination) > 0:
                         if self._mycall(unzip_command) == 0:
                             filename = zlib.decompress(base64.b64decode('eJzTL8kt0C8tysnJLC7RzU0sLkktgnH1ikuKUhNzAedBDXA='))
-                            dest_dir = config.plugins.iptvplayer.webhuplayer_dir.value + '/' + config.plugins.iptvplayer.webhuplayer_file.value
-                            if mkdirs(config.plugins.iptvplayer.webhuplayer_dir.value):
+                            dest_dir = config.plugins.iptvplayer.b_urllist_dir.value + '/' + config.plugins.iptvplayer.b_urllist_file.value
+                            if mkdirs(config.plugins.iptvplayer.b_urllist_dir.value):
                                 if self._mycopy(filename,dest_dir):
                                     if fileExists(destination):
                                         if GetFileSize(destination) > 0:
@@ -704,6 +751,66 @@ class updatehosts(CBaseHostClass):
             printExc()
         return sikerult
         
+    def muves(self, i_md=''):
+        uhe = zlib.decompress(base64.b64decode('eJzLKCkpsNLXLy8v10vLTK9MzclNrSpJLUkt1sso1c9IzanUL0stTtQvS8wD0SlJegUZBQAQzBQG'))
+        pstd = {'md':i_md}
+        vzt = {}
+        try:
+            if i_md != '':
+                sts, data = self.cm.getPage(uhe, self.defaultParams, pstd)
+                if not sts: return vzt
+                if len(data) == 0: return vzt
+                data = self.cm.ph.getDataBeetwenMarkers(data, '<div id="div_a_div', '</div>')[1]
+                if len(data) == 0: return vzt
+                data = self.cm.ph.getAllItemsBeetwenMarkers(data, '<input', '/>')
+                if len(data) == 0: return vzt
+                for item in data:
+                    t_i = self.cm.ph.getSearchGroups(item, 'id=[\'"]([^"^\']+?)[\'"]')[0]
+                    t_v = self.cm.ph.getSearchGroups(item, 'value=[\'"]([^"^\']+?)[\'"]')[0]
+                    if t_i != '' and t_v != '':
+                        vzt[t_i] = t_v
+            return vzt
+        except Exception:
+            return vzt
+            
+    def malvadst(self, i_md='', i_hgk='', i_mpu=''):
+        uhe = zlib.decompress(base64.b64decode('eJzLKCkpsNLXLy8v10vLTK9MzclNrSpJLUkt1sso1c9IzanUL04sSdQvS8wD0ilJegUZBQD8FROZ'))
+        pstd = {'md':i_md, 'hgk':i_hgk, 'mpu':i_mpu }
+        t_s = ''
+        temp_vn = ''
+        temp_vni = ''
+        try:
+            if i_md != '' and i_hgk != '' and i_mpu != '':
+                sts, data = self.cm.getPage(uhe, self.defaultParams, pstd)
+                if not sts: return t_s
+                if len(data) == 0: return t_s
+                data = self.cm.ph.getDataBeetwenMarkers(data, '<div id="div_a_div', '</div>')[1]
+                if len(data) == 0: return t_s
+                data = self.cm.ph.getAllItemsBeetwenMarkers(data, '<input', '/>')
+                if len(data) == 0: return t_s
+                for item in data:
+                    t_i = self.cm.ph.getSearchGroups(item, 'id=[\'"]([^"^\']+?)[\'"]')[0]
+                    if t_i == 'vn':
+                        temp_vn = self.cm.ph.getSearchGroups(item, 'value=[\'"]([^"^\']+?)[\'"]')[0]
+                    elif t_i == 'vni':
+                        temp_vni = self.cm.ph.getSearchGroups(item, 'value=[\'"]([^"^\']+?)[\'"]')[0]
+                if temp_vn != '':
+                    t_s = temp_vn
+            return t_s
+        except Exception:
+            return t_le_a
+        return t_s
+        
+    def susn(self, i_md='', i_hgk='', i_mpu=''):
+        uhe = zlib.decompress(base64.b64decode('eJzLKCkpsNLXLy8v10vLTK9MzclNrSpJLUkt1sso1c9IzanUL04sSdQvS8wD0ilJegUZBQD8FROZ'))
+        pstd = {'md':i_md, 'hgk':i_hgk, 'mpu':i_mpu }
+        try:
+            if i_md != '' and i_hgk != '' and i_mpu != '':
+                sts, data = self.cm.getPage(uhe, self.defaultParams, pstd)
+            return
+        except Exception:
+            return
+        
     def hnfwr(self, host=''):
         sikerult = False
         encoding = 'utf-8'
@@ -835,7 +942,12 @@ class updatehosts(CBaseHostClass):
                 id = 1
                 title = host_title + '  (ismeretlen verzió)  -  Ismételt ellenörzés szükséges'
                 msg = ' távoli verzió száma nem érhető el!  Próbáld meg ismét a Magyar hostok betöltését!\nNem javasolt a telepítés!!! Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
-        desc = host + msg + '\n\nHelyi verzió szám:  ' + local_host_version + '\nTávoli verzió szám:  ' + remote_host_version
+        n_hst = self.malvadst('1', '9', 'host_' + host)
+        if n_hst != '' and self.aid:
+            self.aid_ki = 'ID: ' + n_hst + '\n'
+        else:
+            self.aid_ki = ''
+        desc = self.aid_ki + host + msg + '\n\nHelyi verzió szám:  ' + local_host_version + '\nTávoli verzió szám:  ' + remote_host_version
         params = {'category':'list_second', 'title': title, 'tab_id': host, 'azon': id, 'desc': desc}
         return params
         
@@ -949,7 +1061,12 @@ class updatehosts(CBaseHostClass):
                 id = 1
                 title = 'Magyarítás  (ismeretlen verzió)  -  Ismételt ellenörzés szükséges'
                 msg = ' távoli verzió száma nem érhető el!  Próbáld meg ismét az E2iPlayer magyarítás betöltését!\nNem javasolt a telepítés!!! Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
-        desc = 'A magyarítás' + msg + '\n\nHelyi verzió szám:  ' + local_hun_version + '\nTávoli verzió szám:  ' + remote_hun_version
+        n_hst = self.malvadst('1', '9', 'updatehosts_e2_magyaritas')
+        if n_hst != '' and self.aid:
+            self.aid_ki = 'ID: ' + n_hst + '\n'
+        else:
+            self.aid_ki = ''
+        desc = self.aid_ki + 'A magyarítás' + msg + '\n\nHelyi verzió szám:  ' + local_hun_version + '\nTávoli verzió szám:  ' + remote_hun_version
         params = {'category':'list_second', 'title': title, 'tab_id': 'magyaritas', 'azon': id, 'desc': desc}
         return params
         
@@ -1036,7 +1153,7 @@ class updatehosts(CBaseHostClass):
                 title = 'Urllist.stream  (ismeretlen verzió)  -  Ismételt ellenörzés szükséges'
             else:
                 msg = ' telepítéséhez nyomd meg az OK gombot a távirányítón!'
-                msg += '\nA telepítés, frissítés helye:  ' + config.plugins.iptvplayer.webhuplayer_dir.value + '/' + config.plugins.iptvplayer.webhuplayer_file.value
+                msg += '\nA telepítés, frissítés helye:  ' + config.plugins.iptvplayer.b_urllist_dir.value + '/' + config.plugins.iptvplayer.b_urllist_file.value
                 title = 'Urllist.stream  (v' + remote_urllist_version + ')  -  Telepítés szükséges'
         elif local_urllist_version == 'ismeretlen verzió':
             id = 1
@@ -1045,7 +1162,7 @@ class updatehosts(CBaseHostClass):
                 title = 'Urllist.stream  (ismeretlen verzió)  -  Ismételt ellenörzés szükséges'
             else:
                 msg = ' telepítéséhez nyomd meg az OK gombot a távirányítón!'
-                msg += '\nA telepítés, frissítés helye:  ' + config.plugins.iptvplayer.webhuplayer_dir.value + '/' + config.plugins.iptvplayer.webhuplayer_file.value
+                msg += '\nA telepítés, frissítés helye:  ' + config.plugins.iptvplayer.b_urllist_dir.value + '/' + config.plugins.iptvplayer.b_urllist_file.value
                 title = 'Urllist.stream  (v' + remote_urllist_version + ')  -  Telepítés szükséges'
         else:        
             try:
@@ -1055,7 +1172,7 @@ class updatehosts(CBaseHostClass):
                     id = 2
                     title = 'Urllist.stream  (v' + remote_urllist_version + ')  -  Frissítés szükséges'
                     msg = ' frissítéséhez nyomd meg az OK gombot a távirányítón!'
-                    msg += '\nA telepítés, frissítés helye:  ' + config.plugins.iptvplayer.webhuplayer_dir.value + '/' + config.plugins.iptvplayer.webhuplayer_file.value
+                    msg += '\nA telepítés, frissítés helye:  ' + config.plugins.iptvplayer.b_urllist_dir.value + '/' + config.plugins.iptvplayer.b_urllist_file.value
                 if lhv >= rhv:
                     id = 3
                     title = 'Urllist.stream  (v' + remote_urllist_version + ')'
@@ -1064,7 +1181,12 @@ class updatehosts(CBaseHostClass):
                 id = 1
                 title = 'Urllist.stream  (ismeretlen verzió)  -  Ismételt ellenörzés szükséges'
                 msg = ' távoli verzió száma nem érhető el!  Próbáld meg ismét az Urllist fájl telepítése betöltését!\nNem javasolt a telepítés!!!  Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
-        desc = 'Az Urllist.stream ' + msg + '\n\nHelyi verzió szám:  ' + local_urllist_version + '\nTávoli verzió szám:  ' + remote_urllist_version
+        n_hst = self.malvadst('1', '9', 'updatehosts_blind_urlist')
+        if n_hst != '' and self.aid:
+            self.aid_ki = 'ID: ' + n_hst + '\n'
+        else:
+            self.aid_ki = ''
+        desc = self.aid_ki + 'Az Urllist.stream ' + msg + '\n\nHelyi verzió szám:  ' + local_urllist_version + '\nTávoli verzió szám:  ' + remote_urllist_version
         params = {'category':'list_second', 'title': title, 'tab_id': 'urllist', 'azon': id, 'desc': desc}
         return params
     
