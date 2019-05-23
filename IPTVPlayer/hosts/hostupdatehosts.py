@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-05-03 by Alec - updatehosts HU host telepítő
+# 2019-05-23 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "1.9"
+HOST_VERSION = "2.0"
 ###################################################
 # LOCAL import
 ###################################################
@@ -102,6 +102,7 @@ class updatehosts(CBaseHostClass):
         self.FILMEZZ = zlib.decompress(base64.b64decode('eJxLy8zJTa2qAgALtAMC'))
         self.WEBHUPLAYER = zlib.decompress(base64.b64decode('eJwrT03KKC3ISaxMLQIAG+YEqQ=='))
         self.AUTOHU = zlib.decompress(base64.b64decode('eJxLLC3JzygFAAj3Apc='))
+        self.M4SPORT = zlib.decompress(base64.b64decode('eJzLNSkuyC8qAQAK3gLa'))
         self.aid = config.plugins.iptvplayer.updatehosts_id.value
         self.aid_ki = ''
         self.defaultParams = {'header':self.HEADER, 'use_cookie': False, 'load_cookie': False, 'save_cookie': False, 'cookiefile': self.COOKIE_FILE}
@@ -186,6 +187,7 @@ class updatehosts(CBaseHostClass):
                 HOST_CAT_TAB.append(self.menuItem(self.FILMEZZ))
                 HOST_CAT_TAB.append(self.menuItem(self.WEBHUPLAYER))
                 HOST_CAT_TAB.append(self.menuItem(self.AUTOHU))
+                HOST_CAT_TAB.append(self.menuItem(self.M4SPORT))
                 HOST_CAT_TAB = sorted(HOST_CAT_TAB, key=lambda i: (i['azon'], i['title']))
                 self.listsTab(HOST_CAT_TAB, cItem)
             else:
@@ -288,6 +290,9 @@ class updatehosts(CBaseHostClass):
             elif tabID == self.AUTOHU:
                 self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.AUTOHU,True,False,'auto.HU')
+            elif tabID == self.M4SPORT:
+                self.susn('2', '9', 'host_' + tabID)
+                self.host_telepites(self.M4SPORT,True,False,'https://www.m4sport.hu')
             else:
                 return
         except Exception:
@@ -798,8 +803,7 @@ class updatehosts(CBaseHostClass):
                     t_s = temp_vn
             return t_s
         except Exception:
-            return t_le_a
-        return t_s
+            return t_s
         
     def susn(self, i_md='', i_hgk='', i_mpu=''):
         uhe = zlib.decompress(base64.b64decode('eJzLKCkpsNLXLy8v10vLTK9MzclNrSpJLUkt1sso1c9IzanUL04sSdQvS8wD0ilJegUZBQD8FROZ'))
