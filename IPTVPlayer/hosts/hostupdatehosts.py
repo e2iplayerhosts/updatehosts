@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-05-23 by Alec - updatehosts HU host telepítő
+# 2019-05-25 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "2.0"
+HOST_VERSION = "2.1"
 ###################################################
 # LOCAL import
 ###################################################
@@ -145,7 +145,7 @@ class updatehosts(CBaseHostClass):
                 self.aid_ki = 'ID: ' + n_bulst + '\n'
             else:
                 self.aid_ki = ''
-            msg_urllist = self.aid_ki + 'Blindspot féle urllist.stream fájlt lehet itt telepíteni, frissíteni.\n\nA stream fájlt az "Urllists player" hosttal (Egyéb csoport) lehet lejátszani a Live streams menüpontban... '
+            msg_urllist = self.aid_ki + 'Blindspot féle urllist.stream fájlt lehet itt telepíteni, frissíteni.\nA stream fájlt az "Urllists player" hosttal (Egyéb csoport) lehet lejátszani a Live streams menüpontban...\n\nA "WEB HU PLAYER" host használatát javasoljuk, mert hamarosan a tartalom csak ott lesz elérhető!!!'
             MAIN_CAT_TAB = [{'category': 'list_main', 'title': 'Magyar hostok', 'tab_id': 'hostok', 'desc': msg_host},
                             {'category': 'list_main', 'title': 'E2iPlayer magyarítása', 'tab_id': 'magyaritas', 'desc': msg_magyar},
                             {'category': 'list_main', 'title': 'E2iPlayer hibajavításai', 'tab_id': 'javitas', 'desc': msg_javitas},
@@ -194,6 +194,33 @@ class updatehosts(CBaseHostClass):
                 self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
         except Exception:
             printExc()
+            
+    def hostleirasa(self, host):
+        ls = ''
+        if host != '':
+            if host == self.UPDATEHOSTS:
+                ls = '\n(HU Telepítő keretrendszer, mely telepíti az itt lévő magyar hostokat)'
+            if host == self.SONYPLAYER:
+                ls = '\n(AXN, Viasat, SonyMAX, SonyMovie tartalmait jeleníti meg)'
+            if host == self.MYTVTELENOR:
+                ls = '\n(A Telenor MyTV tartalmait jeleníti meg. Regisztráció szükséges, de ingyenes tartalmak is elérhetők)'
+            if host == self.RTLMOST:
+                ls = '\n(A magyar RTLKLUB csatorna rtlmost.hu tartalmait jeleníti meg. Regisztráció szükséges)'
+            if host == self.MINDIGO:
+                ls = '\n(A mindiGO TV adásait jeleníti meg. Regisztráció szükséges)'
+            if host == self.MOOVIECC:
+                ls = '\n(A moovie.cc tartalmait jeleníti meg. Filmek és sorozatok minden mennyiségben)'
+            if host == self.MOZICSILLAG:
+                ls = '\n(A mozicsillag.me tartalmait jeleníti meg. Filmek és sorozatok minden mennyiségben)'
+            if host == self.FILMEZZ:
+                ls = '\n(A filmezz.eu tartalmait jeleníti meg. Filmek és sorozatok minden mennyiségben)'
+            if host == self.WEBHUPLAYER:
+                ls = '\n(Webes tartalmak (Filmek, Gasztro, TV csatornák, Időkép, Tájak, ...) Blindspot szerkesztésében, YouTube tartalmak megjelenítése)'
+            if host == self.AUTOHU:
+                ls = '\n(Magyar autós műsorakat jelenít meg - AUTOGRAM, GARAZS, SUPERCAR, FORMA1)'
+            if host == self.M4SPORT:
+                ls = '\n(Az m4sport.hu sport műsorait jeleníti meg - Boxutca, Magyar foci, UEFA Bajnokok Ligája foci, Sporthírek, Sportközvetítések)'
+        return ls
             
     def Magyaritas(self, cItem):
         try:
@@ -906,11 +933,13 @@ class updatehosts(CBaseHostClass):
         msg = ''
         title = ''
         desc = ''
+        hl = ''
         id = 0
         if host == self.UPDATEHOSTS:
             host_title = 'HU Telepítő keretrendszer'
         else:
             host_title = host
+        hl = self.hostleirasa(host)
         params = dict()
         local_host_version = self.getHostVersion_local(self.IH + self.HS + '/host' + host + '.py')
         remote_host_version = self.getHostVersion_remote(host)
@@ -951,7 +980,7 @@ class updatehosts(CBaseHostClass):
             self.aid_ki = 'ID: ' + n_hst + '\n'
         else:
             self.aid_ki = ''
-        desc = self.aid_ki + host + msg + '\n\nHelyi verzió szám:  ' + local_host_version + '\nTávoli verzió szám:  ' + remote_host_version
+        desc = self.aid_ki + host + msg + hl + '\n\nHelyi verzió szám:  ' + local_host_version + '\nTávoli verzió szám:  ' + remote_host_version
         params = {'category':'list_second', 'title': title, 'tab_id': host, 'azon': id, 'desc': desc}
         return params
         
