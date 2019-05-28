@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-05-25 by Alec - updatehosts HU host telepítő
+# 2019-05-29 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "2.1"
+HOST_VERSION = "2.2"
 ###################################################
 # LOCAL import
 ###################################################
 from Plugins.Extensions.IPTVPlayer.components.iptvplayerinit import TranslateTXT as _, SetIPTVPlayerLastHostError
 from Plugins.Extensions.IPTVPlayer.components.ihost import CHostBase, CBaseHostClass
-from Plugins.Extensions.IPTVPlayer.tools.iptvtools import printDBG, printExc, byteify, rm, rmtree, mkdirs, DownloadFile, GetBinDir, GetTmpDir, GetFileSize, MergeDicts, GetConfigDir, Which
+from Plugins.Extensions.IPTVPlayer.tools.iptvtools import printDBG, printExc, byteify, rm, rmtree, mkdirs, DownloadFile, GetIPTVPlayerVerstion, GetBinDir, GetTmpDir, GetFileSize, MergeDicts, GetConfigDir, Which
 from Plugins.Extensions.IPTVPlayer.tools.iptvtypes import strwithmeta
 from Plugins.Extensions.IPTVPlayer.libs.e2ijson import loads as json_loads, dumps as json_dumps
 from Plugins.Extensions.IPTVPlayer.libs import ph
@@ -92,6 +92,12 @@ class updatehosts(CBaseHostClass):
         self.LTX = self.IH + self.HS + zlib.decompress(base64.b64decode('eJzTz8ksLtErqSgBABBdA3o='))
         self.ASTX = self.IH + self.HS + zlib.decompress(base64.b64decode('eJzTT8zJTCxOLdYrqSgBAByWBKA='))
         self.HLM = self.IH + zlib.decompress(base64.b64decode('eJzTz8lPTsxJ1c8o1fdxjvd1DQ52dHcNBgBVsAch'))
+        self.EHH = zlib.decompress(base64.b64decode('eJzTTy1J1k/Ny0zPTTTSBwAfugRt'))
+        self.iphg = self.EHH + zlib.decompress(base64.b64decode('eJzLLCgpK8hJrEwtysgvLilOL8ovLSjWyyrOzwMAlt0LCg=='))
+        self.ipudg = self.EHH + zlib.decompress(base64.b64decode('eJzLLCgpK8hJrEwtKi1OLUpJTcvMS01JL8ovLdDLKs7PAwDSYgz0'))
+        self.vivn = GetIPTVPlayerVerstion()
+        self.porv = self.gits()
+        self.pbtp = '-'
         self.UPDATEHOSTS = zlib.decompress(base64.b64decode('eJwrLUhJLEnNyC8uKQYAHAAEtQ=='))
         self.SONYPLAYER = zlib.decompress(base64.b64decode('eJwrzs+rLMhJrEwtAgAYFQRX'))
         self.MYTVTELENOR = zlib.decompress(base64.b64decode('eJzLrSwpK0nNSc3LLwIAHQwEyg=='))
@@ -140,6 +146,12 @@ class updatehosts(CBaseHostClass):
             else:
                 self.aid_ki = ''
             msg_javitas = self.aid_ki + 'Az E2iPlayer különböző hibáinak javítására nyilik itt lehetőség.'
+            n_hu_min = self.malvadst('1', '9', 'updatehosts_hu_minimal_fo')
+            if n_hu_min != '' and self.aid:
+                self.aid_ki = 'ID: ' + n_hu_min + '\n'
+            else:
+                self.aid_ki = ''
+            msg_magyar_minimal = self.aid_ki + 'Az E2iPlayer "Magyar minimál stílus" beállítása...'
             n_bulst = self.malvadst('1', '9', 'updatehosts_burllist')
             if n_bulst != '' and self.aid:
                 self.aid_ki = 'ID: ' + n_bulst + '\n'
@@ -149,6 +161,7 @@ class updatehosts(CBaseHostClass):
             MAIN_CAT_TAB = [{'category': 'list_main', 'title': 'Magyar hostok', 'tab_id': 'hostok', 'desc': msg_host},
                             {'category': 'list_main', 'title': 'E2iPlayer magyarítása', 'tab_id': 'magyaritas', 'desc': msg_magyar},
                             {'category': 'list_main', 'title': 'E2iPlayer hibajavításai', 'tab_id': 'javitas', 'desc': msg_javitas},
+                            {'category': 'list_main', 'title': 'Magyar minimál stílus', 'tab_id': 'magyar_minimal', 'desc': msg_magyar_minimal},
                             {'category': 'list_main', 'title': 'Urllist fájl telepítése', 'tab_id': 'urllist', 'desc': msg_urllist}
                            ]
             self.listsTab(MAIN_CAT_TAB, cItem)
@@ -164,6 +177,8 @@ class updatehosts(CBaseHostClass):
                 self.Magyaritas(cItem)
             elif tabID == 'javitas':
                 self.Javitas(cItem)
+            elif tabID == 'magyar_minimal':
+                self.Magyar_minimal(cItem)    
             elif tabID == 'urllist':
                 self.Urllist_stream(cItem)
             else:
@@ -245,10 +260,36 @@ class updatehosts(CBaseHostClass):
                     self.aid_ki = 'ID: ' + n_yjt + '\n'
                 else:
                     self.aid_ki = ''
-                msg_jav = self.aid_ki + '2019.04.24.\n\nAz alábbi hibára ad megoldást ez a javítás:\n"token" parameter not in video info'
+                msg_jav = self.aid_ki + '2019.04.24.\n\nAz alábbi hibára ad megoldást ez a javítás:\n"token" parameter not in video info\n\n(Csak egyszer kell végrehajtani!)'
                 HIBAJAV_CAT_TAB = [{'category': 'list_second', 'title': 'YouTube hiba javítása', 'tab_id': 'hibajav_youtube', 'desc': msg_jav}
                                   ]
                 self.listsTab(HIBAJAV_CAT_TAB, cItem)
+            else:
+                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+        except Exception:
+            printExc()
+            
+    def Magyar_minimal(self, cItem):
+        try:
+            valasz, msg = self._usable()
+            if valasz:
+                self.susn('2', '9', 'updatehosts_hu_minimal_fo')
+                n_mmsb = self.malvadst('1', '9', 'updatehosts_hu_minimal_beal')
+                if n_mmsb != '' and self.aid:
+                    self.aid_ki = 'ID: ' + n_mmsb + '\n'
+                else:
+                    self.aid_ki = ''
+                msg_beallit = self.aid_ki + 'Az E2iPlayer a "Magyar minimál stílus" beállítással indul.\nCsak a "Magyar", "Felhasználó által meghatározott", "Összes" és "Konfiguráció" csoportok látszódnak.\nKönnyű és gyors használat a magyar tartalmakhoz...'
+                n_mast = self.malvadst('1', '9', 'updatehosts_hu_minimal_alaph')
+                if n_mast != '' and self.aid:
+                    self.aid_ki = 'ID: ' + n_mast + '\n'
+                else:
+                    self.aid_ki = ''
+                msg_visszaallit = self.aid_ki + 'Az E2iPlayer alapértelmezett indítási csoportjainak visszaállítása.\nA program telepítésekor létrejött "Alapértelmezett" csoportok jelennek meg!'
+                MIN_CAT_TAB = [{'category': 'list_second', 'title': 'Magyar minimál stílus beállítása', 'tab_id': 'minimal_beallit', 'desc': msg_beallit},
+                               {'category': 'list_second', 'title': 'Alapértelmezett stílus visszaállítása', 'tab_id': 'minimal_visszaallit', 'desc': msg_visszaallit}
+                              ]
+                self.listsTab(MIN_CAT_TAB, cItem)
             else:
                 self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
         except Exception:
@@ -287,6 +328,12 @@ class updatehosts(CBaseHostClass):
             elif tabID == 'hibajav_youtube':
                 self.susn('2', '9', 'updatehosts_yt_javitas')
                 self.ytjv()
+            elif tabID == 'minimal_beallit':
+                self.susn('2', '9', 'updatehosts_hu_minimal_beal')
+                self.mlmsbt()
+            elif tabID == 'minimal_visszaallit':
+                self.susn('2', '9', 'updatehosts_hu_minimal_alaph')
+                self.mlvat()
             elif tabID == self.UPDATEHOSTS:
                 self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.UPDATEHOSTS,True,False,'HU host telepítő, frissítő')
@@ -687,6 +734,182 @@ class updatehosts(CBaseHostClass):
             rmtree(destination_dir, ignore_errors=True)
         return
         
+    def mlvat(self):
+        hiba = False
+        msg = ''
+        fnb = self.iphg
+        fnu = self.ipudg
+        try:
+            if fileExists(fnb + '.bak'):
+                try:
+                    if self._mycopy(fnb + '.bak',fnb):
+                        if fileExists(fnb):
+                            if GetFileSize(fnb) > 0:
+                                if fileExists(fnu + '.bak'):
+                                    if self._mycopy(fnu + '.bak',fnu):
+                                        if fileExists(fnu):
+                                            if GetFileSize(fnu) > 0:
+                                                hiba = False
+                                            else:
+                                                hiba = True
+                                                msg = 'Hiba: 501 - A visszaállított fájl üres'    
+                                        else:
+                                            hiba = True
+                                            msg = 'Hiba: 502 - Nem létezik a visszaállított fájl'    
+                                    else:
+                                        hiba = True
+                                        msg = 'Hiba: 503 - Nem sikerült a visszaállítás másolása'
+                                else:
+                                    if fileExists(fnu):
+                                        rm(fnu)
+                                    hiba = False
+                            else:
+                                hiba = True
+                                msg = 'Hiba: 504 - A visszaállított fájl üres'    
+                        else:
+                            hiba = True
+                            msg = 'Hiba: 505 - Nem létezik a visszaállított fájl'    
+                    else:
+                        hiba = True
+                        msg = 'Hiba: 506 - Nem sikerült a visszaállítás másolása'
+                    if hiba:
+                        if msg == '':
+                            msg = 'Hiba: 507 - Nem sikerült a visszaállítás!'
+                        title = 'Az Alapértelmezett stílus visszaállítása nemsikerült!'
+                        desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+                        self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+                    else:
+                        msg = 'Sikerült az Alapértelmezett stílus visszaállítása!\n\nKezelőfelület újraindítása szükséges. Újraindítsam most?'
+                        title = 'Az Alapértelmezett stílus visszaállítása végrehajtva'
+                        desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a visszaállítás!!!'
+                        try:
+                            ret = self.sessionEx.waitForFinishOpen(MessageBox, msg, type=MessageBox.TYPE_YESNO, default=True)
+                            if ret[0]:
+                                try:
+                                    desc = 'A kezelőfelület most újraindul...'
+                                    quitMainloop(3)
+                                except Exception:
+                                    msg = 'Hiba: 508 - Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
+                                    desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a visszaállítás!!!'
+                                    self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )
+                        except Exception:
+                            msg = 'Hiba: 509 - Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
+                            desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a visszaállítás!!!'
+                            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )
+                except Exception:
+                    title = 'Az Alapértelmezett stílus visszaállítása nemsikerült!'
+                    desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+                    printExc()
+                params = dict()
+                params.update({'good_for_fav': False, 'category': 'list_second', 'title': title, 'tab_id': 'minimal_visszaallit', 'desc': desc})
+                self.addDir(params)
+            else:
+                msg = 'Nincs mit visszaállítani!\nCsak a "Magyar minimál stílus" csoportosítását lehet visszaállítani\naz Alapértelmezett csoportosításra.'
+                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+        except Exception:
+            msg = 'Nincs mit visszaállítani!\nCsak a "Magyar minimál stílus" csoportosítását lehet visszaállítani\naz Alapértelmezett csoportosításra.'
+            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+            
+    def mlmsbt(self):
+        encoding = 'utf-8'
+        hiba = False
+        msg = ''
+        fnb = self.iphg
+        fnbw = self.iphg + '.writing'
+        fnu = self.ipudg
+        try:
+            if fileExists(fnb):
+                if self.cfnbbak(fnb):
+                    if fileExists(fnb + '.bak'):
+                        if GetFileSize(fnb + '.bak') > 0:
+                            try:
+                                datsz = {"disabled_groups": ["moviesandseries", "cartoonsandanime", "music", "sport", "live", "documentary", "science", "polish", "english", "german", "french", "russian", "arabic", "greek", "latino", "italian", "swedish", "balkans", "others"], "version": 0, "groups": [{"name": "hungarian"}, {"name": "userdefined"}]}
+                                datsz = json_dumps(datsz)
+                                fpw = codecs.open(fnbw, 'w', encoding, 'replace')
+                                fpw.write(datsz)
+                                fpw.flush()
+                                os.fsync(fpw.fileno())
+                                fpw.close()
+                                os.rename(fnbw, self.iphg)
+                            except Exception:
+                                if fileExists(fnbw):
+                                    rm(fnbw)
+                                hiba = True
+                                msg = 'Hiba: 601 - A magyar minimál stílus beállítása nem sikerült!'
+                            finally:
+                                if fileExists(fnbw):
+                                    rm(fnbw)
+                            if not hiba and not fileExists(fnu):
+                                try:
+                                    datszm = {"disabled_hosts": [], "version": 0, "hosts": ["favourites", "localmedia", "urllist"]}
+                                    datszm = json_dumps(datszm)
+                                    with codecs.open(self.ipudg, 'w', encoding, 'replace') as fuw:
+                                        fuw.write(datszm)
+                                    hiba = False
+                                except Exception:    
+                                    hiba = True
+                                    msg = 'Hiba: 602 - A user fájl írása nem sikerült!' 
+                                    if fileExists(self.ipudg):
+                                        rm(self.ipudg)
+                        else:
+                            hiba = True
+                            msg = 'Hiba: 603 - A magyar minimál stílus beállítása nem sikerült!'    
+                    else:
+                        hiba = True
+                        msg = 'Hiba: 604 - A magyar minimál stílus beállítása nem sikerült!'    
+                else:
+                    hiba = True
+                    msg = 'Hiba: 605 - A magyar minimál stílus beállítása nem sikerült!' 
+            else:
+                hiba = True
+                msg = 'Hiba: 606 - A magyar minimál stílus beállítása nem sikerült!'
+            if hiba:
+                if msg == '':
+                    msg = 'Hiba: 607 - A magyar minimál stílus beállítása nem sikerült!'
+                title = 'A Magyar minimál stílus beállítása nemsikerült!'
+                desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+            else:
+                msg = 'Sikerült a Magyar minimál stílus beállítása!\n\nKezelőfelület újraindítása szükséges. Újraindítsam most?'
+                title = 'A Magyar minimál stílus beállítása végrehajtva'
+                desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a Magyar minimál stílus beállítás!!!'
+                try:
+                    ret = self.sessionEx.waitForFinishOpen(MessageBox, msg, type=MessageBox.TYPE_YESNO, default=True)
+                    if ret[0]:
+                        try:
+                            desc = 'A kezelőfelület most újraindul...'
+                            quitMainloop(3)
+                        except Exception:
+                            msg = 'Hiba: 608 - Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
+                            desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a Magyar minimál stílus beállítás!!!'
+                            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )
+                except Exception:
+                    msg = 'Hiba: 609 - Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
+                    desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a Magyar minimál stílus beállítás!!!'
+                    self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )
+        except Exception:
+            title = 'A Magyar minimál stílus beállítása nemsikerült!'
+            desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+            printExc()
+        params = dict()
+        params.update({'good_for_fav': False, 'category': 'list_second', 'title': title, 'tab_id': 'minimal_beallit', 'desc': desc})
+        self.addDir(params)
+        
+    def cfnbbak(self, fnb=''):
+        skt = False
+        encoding = 'utf-8'
+        try:
+            if fnb != '' and fileExists(fnb):
+                datsz = {"disabled_groups": [], "version": 0, "groups": [{"name": "hungarian"}, {"name": "userdefined"}, {"name": "moviesandseries"}, {"name": "cartoonsandanime"}, {"name": "music"}, {"name": "sport"}, {"name": "live"}, {"name": "documentary"}, {"name": "science"}, {"name": "polish"}, {"name": "english"}, {"name": "german"}, {"name": "french"}, {"name": "russian"}, {"name": "arabic"}, {"name": "greek"}, {"name": "latino"}, {"name": "italian"}, {"name": "swedish"}, {"name": "balkans"}, {"name": "others"}]}
+                datsz = json_dumps(datsz)
+                with codecs.open(fnb + '.bak', 'w', encoding, 'replace') as fuw:
+                    fuw.write(datsz)
+                skt = True
+            return skt
+        except Exception:
+            skt = False
+            return skt
+        
     def _mycall(self, cmd):
         command = cmd
         back_state = -1
@@ -834,13 +1057,32 @@ class updatehosts(CBaseHostClass):
         
     def susn(self, i_md='', i_hgk='', i_mpu=''):
         uhe = zlib.decompress(base64.b64decode('eJzLKCkpsNLXLy8v10vLTK9MzclNrSpJLUkt1sso1c9IzanUL04sSdQvS8wD0ilJegUZBQD8FROZ'))
-        pstd = {'md':i_md, 'hgk':i_hgk, 'mpu':i_mpu }
+        pstd = {'md':i_md, 'hgk':i_hgk, 'mpu':i_mpu, 'hv':self.vivn, 'orv':self.porv, 'bts':self.pbtp}
         try:
             if i_md != '' and i_hgk != '' and i_mpu != '':
                 sts, data = self.cm.getPage(uhe, self.defaultParams, pstd)
             return
         except Exception:
             return
+            
+    def gits(self):
+        bv = '-'
+        tt = []
+        try:
+            if fileExists(zlib.decompress(base64.b64decode('eJzTTy1J1s8sLi5NBQATXQPE'))):
+                fr = open(zlib.decompress(base64.b64decode('eJzTTy1J1s8sLi5NBQATXQPE')),'r')
+                for ln in fr:
+                    ln = ln.rstrip('\n')
+                    if ln != '':
+                        tt.append(ln)
+                fr.close()
+                if len(tt) == 1:
+                    bv = tt[0].strip()[:-6].capitalize()
+                if len(tt) == 2:
+                    bv = tt[1].strip()[:-6].capitalize()
+            return bv
+        except:
+            return '-'
         
     def hnfwr(self, host=''):
         sikerult = False
@@ -1224,12 +1466,10 @@ class updatehosts(CBaseHostClass):
         return params
     
     def handleService(self, index, refresh = 0, searchPattern = '', searchType = ''):
-        printDBG('handleService start')
         CBaseHostClass.handleService(self, index, refresh, searchPattern, searchType)
         name     = self.currItem.get("name", '')
         category = self.currItem.get("category", '')
         mode     = self.currItem.get("mode", '')
-        printDBG( "handleService: |||||||||||||||||||||||||||||||||||| name[%s], category[%s] " % (name, category) )
         self.currList = []
         if name == None:
             self.listMainMenu( {'name':'category'} )
