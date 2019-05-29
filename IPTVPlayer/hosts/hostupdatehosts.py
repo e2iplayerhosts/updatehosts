@@ -2,7 +2,7 @@
 ###################################################
 # 2019-05-29 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "2.2"
+HOST_VERSION = "2.3"
 ###################################################
 # LOCAL import
 ###################################################
@@ -818,51 +818,47 @@ class updatehosts(CBaseHostClass):
         fnbw = self.iphg + '.writing'
         fnu = self.ipudg
         try:
-            if fileExists(fnb):
-                if self.cfnbbak(fnb):
-                    if fileExists(fnb + '.bak'):
-                        if GetFileSize(fnb + '.bak') > 0:
-                            try:
-                                datsz = {"disabled_groups": ["moviesandseries", "cartoonsandanime", "music", "sport", "live", "documentary", "science", "polish", "english", "german", "french", "russian", "arabic", "greek", "latino", "italian", "swedish", "balkans", "others"], "version": 0, "groups": [{"name": "hungarian"}, {"name": "userdefined"}]}
-                                datsz = json_dumps(datsz)
-                                fpw = codecs.open(fnbw, 'w', encoding, 'replace')
-                                fpw.write(datsz)
-                                fpw.flush()
-                                os.fsync(fpw.fileno())
-                                fpw.close()
-                                os.rename(fnbw, self.iphg)
-                            except Exception:
-                                if fileExists(fnbw):
-                                    rm(fnbw)
-                                hiba = True
-                                msg = 'Hiba: 601 - A magyar minimál stílus beállítása nem sikerült!'
-                            finally:
-                                if fileExists(fnbw):
-                                    rm(fnbw)
-                            if not hiba and not fileExists(fnu):
-                                try:
-                                    datszm = {"disabled_hosts": [], "version": 0, "hosts": ["favourites", "localmedia", "urllist"]}
-                                    datszm = json_dumps(datszm)
-                                    with codecs.open(self.ipudg, 'w', encoding, 'replace') as fuw:
-                                        fuw.write(datszm)
-                                    hiba = False
-                                except Exception:    
-                                    hiba = True
-                                    msg = 'Hiba: 602 - A user fájl írása nem sikerült!' 
-                                    if fileExists(self.ipudg):
-                                        rm(self.ipudg)
-                        else:
+            if self.cfnbbak(fnb):
+                if fileExists(fnb + '.bak'):
+                    if GetFileSize(fnb + '.bak') > 0:
+                        try:
+                            datsz = {"disabled_groups": ["moviesandseries", "cartoonsandanime", "music", "sport", "live", "documentary", "science", "polish", "english", "german", "french", "russian", "arabic", "greek", "latino", "italian", "swedish", "balkans", "others"], "version": 0, "groups": [{"name": "hungarian"}, {"name": "userdefined"}]}
+                            datsz = json_dumps(datsz)
+                            fpw = codecs.open(fnbw, 'w', encoding, 'replace')
+                            fpw.write(datsz)
+                            fpw.flush()
+                            os.fsync(fpw.fileno())
+                            fpw.close()
+                            os.rename(fnbw, self.iphg)
+                        except Exception:
+                            if fileExists(fnbw):
+                                rm(fnbw)
                             hiba = True
-                            msg = 'Hiba: 603 - A magyar minimál stílus beállítása nem sikerült!'    
+                            msg = 'Hiba: 601 - A magyar minimál stílus beállítása nem sikerült!'
+                        finally:
+                            if fileExists(fnbw):
+                                rm(fnbw)
+                        if not hiba and not fileExists(fnu):
+                            try:
+                                datszm = {"disabled_hosts": [], "version": 0, "hosts": ["favourites", "localmedia", "urllist"]}
+                                datszm = json_dumps(datszm)
+                                with codecs.open(self.ipudg, 'w', encoding, 'replace') as fuw:
+                                    fuw.write(datszm)
+                                hiba = False
+                            except Exception:    
+                                hiba = True
+                                msg = 'Hiba: 602 - A user fájl írása nem sikerült!' 
+                                if fileExists(self.ipudg):
+                                    rm(self.ipudg)
                     else:
                         hiba = True
-                        msg = 'Hiba: 604 - A magyar minimál stílus beállítása nem sikerült!'    
+                        msg = 'Hiba: 603 - A magyar minimál stílus beállítása nem sikerült!'    
                 else:
                     hiba = True
-                    msg = 'Hiba: 605 - A magyar minimál stílus beállítása nem sikerült!' 
+                    msg = 'Hiba: 604 - A magyar minimál stílus beállítása nem sikerült!'    
             else:
                 hiba = True
-                msg = 'Hiba: 606 - A magyar minimál stílus beállítása nem sikerült!'
+                msg = 'Hiba: 605 - A magyar minimál stílus beállítása nem sikerült!'
             if hiba:
                 if msg == '':
                     msg = 'Hiba: 607 - A magyar minimál stílus beállítása nem sikerült!'
@@ -899,7 +895,7 @@ class updatehosts(CBaseHostClass):
         skt = False
         encoding = 'utf-8'
         try:
-            if fnb != '' and fileExists(fnb):
+            if fnb != '':
                 datsz = {"disabled_groups": [], "version": 0, "groups": [{"name": "hungarian"}, {"name": "userdefined"}, {"name": "moviesandseries"}, {"name": "cartoonsandanime"}, {"name": "music"}, {"name": "sport"}, {"name": "live"}, {"name": "documentary"}, {"name": "science"}, {"name": "polish"}, {"name": "english"}, {"name": "german"}, {"name": "french"}, {"name": "russian"}, {"name": "arabic"}, {"name": "greek"}, {"name": "latino"}, {"name": "italian"}, {"name": "swedish"}, {"name": "balkans"}, {"name": "others"}]}
                 datsz = json_dumps(datsz)
                 with codecs.open(fnb + '.bak', 'w', encoding, 'replace') as fuw:
