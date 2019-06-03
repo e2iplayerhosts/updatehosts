@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-05-29 by Alec - updatehosts HU host telepítő
+# 2019-06-03 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "2.3"
+HOST_VERSION = "2.4"
 ###################################################
 # LOCAL import
 ###################################################
@@ -133,7 +133,7 @@ class updatehosts(CBaseHostClass):
                 self.aid_ki = 'ID: ' + n_hst + '\n'
             else:
                 self.aid_ki = ''
-            msg_host = self.aid_ki + 'Magyar Hostok listája\n\nA hostok betöltése több időt vehet igénybe!  A letöltés ideje függ az internet sebességétől, illetve a gyűjtő oldal leterheltségétől is...\nVárd meg míg a hostok listája megjelenik. Ez eltarthat akár 3 percig is.\nA host gyűjtő oldalán néha hiba előfordulhat...'
+            msg_host = self.aid_ki + 'v' + HOST_VERSION + '  |  Magyar Hostok listája  -  telepítés, frissítés\n\nA hostok betöltése több időt vehet igénybe!  A letöltés ideje függ az internet sebességétől, illetve a gyűjtő oldal leterheltségétől is...\nVárd meg míg a hostok listája megjelenik. Ez eltarthat akár 1-2 percig is.\nA host gyűjtő oldalán néha hiba előfordulhat...'
             n_mgyr = self.malvadst('1', '9', 'updatehosts_magyaritas')
             if n_mgyr != '' and self.aid:
                 self.aid_ki = 'ID: ' + n_mgyr + '\n'
@@ -158,7 +158,7 @@ class updatehosts(CBaseHostClass):
             else:
                 self.aid_ki = ''
             msg_urllist = self.aid_ki + 'Blindspot féle urllist.stream fájlt lehet itt telepíteni, frissíteni.\nA stream fájlt az "Urllists player" hosttal (Egyéb csoport) lehet lejátszani a Live streams menüpontban...\n\nA "WEB HU PLAYER" host használatát javasoljuk, mert hamarosan a tartalom csak ott lesz elérhető!!!'
-            MAIN_CAT_TAB = [{'category': 'list_main', 'title': 'Magyar hostok', 'tab_id': 'hostok', 'desc': msg_host},
+            MAIN_CAT_TAB = [{'category': 'list_main', 'title': 'Magyar hostok telepítése, frissítése', 'tab_id': 'hostok', 'desc': msg_host},
                             {'category': 'list_main', 'title': 'E2iPlayer magyarítása', 'tab_id': 'magyaritas', 'desc': msg_magyar},
                             {'category': 'list_main', 'title': 'E2iPlayer hibajavításai', 'tab_id': 'javitas', 'desc': msg_javitas},
                             {'category': 'list_main', 'title': 'Magyar minimál stílus', 'tab_id': 'magyar_minimal', 'desc': msg_magyar_minimal},
