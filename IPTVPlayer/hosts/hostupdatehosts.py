@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-06-03 by Alec - updatehosts HU host telepítő
+# 2019-06-08 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "2.4"
+HOST_VERSION = "2.5"
 ###################################################
 # LOCAL import
 ###################################################
@@ -44,7 +44,7 @@ try:
     import json
 except Exception:
     import simplejson as json
-from Components.config import config, ConfigText, ConfigYesNo, getConfigListEntry
+from Components.config import config, ConfigText, ConfigYesNo, getConfigListEntry, configfile
 from datetime import datetime
 from time import sleep
 from hashlib import sha1
@@ -60,12 +60,34 @@ from Screens.MessageBox import MessageBox
 ###################################################
 # Config options for HOST
 ###################################################
+config.plugins.iptvplayer.boxtipus = ConfigText(default = "", fixed_size = False)
+config.plugins.iptvplayer.boxrendszer = ConfigText(default = "", fixed_size = False)
+config.plugins.iptvplayer.hostmentes_dir = ConfigText(default = "/hdd", fixed_size = False)
+config.plugins.iptvplayer.hostmentes_file = ConfigText(default = "hostbeallitasok.backup", fixed_size = False)
 config.plugins.iptvplayer.b_urllist_dir = ConfigText(default = "/hdd", fixed_size = False)
 config.plugins.iptvplayer.b_urllist_file = ConfigText(default = "urllist.stream", fixed_size = False)
 config.plugins.iptvplayer.updatehosts_id = ConfigYesNo(default = False)
+config.plugins.iptvplayer.autohu_rtlmost_login = ConfigText()
+config.plugins.iptvplayer.autohu_rtlmost_password = ConfigText()
+config.plugins.iptvplayer.autohu_id = ConfigYesNo()
+config.plugins.iptvplayer.webhuplayer_dir = ConfigText()
+config.plugins.iptvplayer.webmedia_dir = ConfigText()
+config.plugins.iptvplayer.ytmedia_dir = ConfigText()
+config.plugins.iptvplayer.webhuplayer_nezettseg = ConfigYesNo()
+config.plugins.iptvplayer.m4sport_id = ConfigYesNo()
+config.plugins.iptvplayer.mindigohu_login = ConfigText()
+config.plugins.iptvplayer.mindigohu_password = ConfigText()
+config.plugins.iptvplayer.mytvtelenorhu_login = ConfigText()
+config.plugins.iptvplayer.mytvtelenorhu_password = ConfigText()
+config.plugins.iptvplayer.rtlmosthu_login = ConfigText()
+config.plugins.iptvplayer.rtlmosthu_password = ConfigText()
 
 def GetConfigList():
     optionList = []
+    optionList.append(getConfigListEntry("Set-top-Box típusa (például, Dreambox DM920):", config.plugins.iptvplayer.boxtipus))
+    optionList.append(getConfigListEntry("Image típusa (például, openATV 6.x):", config.plugins.iptvplayer.boxrendszer))
+    optionList.append(getConfigListEntry("Host beállítások mentési könyvtára:", config.plugins.iptvplayer.hostmentes_dir))
+    optionList.append(getConfigListEntry("Host beállítások backup fájl neve:", config.plugins.iptvplayer.hostmentes_file))
     optionList.append(getConfigListEntry("Urllist könyvtár:", config.plugins.iptvplayer.b_urllist_dir))
     optionList.append(getConfigListEntry("Urllist fájl:", config.plugins.iptvplayer.b_urllist_file))
     optionList.append(getConfigListEntry("id:", config.plugins.iptvplayer.updatehosts_id))
@@ -111,6 +133,8 @@ class updatehosts(CBaseHostClass):
         self.M4SPORT = zlib.decompress(base64.b64decode('eJzLNSkuyC8qAQAK3gLa'))
         self.aid = config.plugins.iptvplayer.updatehosts_id.value
         self.aid_ki = ''
+        self.btps = config.plugins.iptvplayer.boxtipus.value
+        self.brdr = config.plugins.iptvplayer.boxrendszer.value
         self.defaultParams = {'header':self.HEADER, 'use_cookie': False, 'load_cookie': False, 'save_cookie': False, 'cookiefile': self.COOKIE_FILE}
     
     def getPage(self, baseUrl, addParams = {}, post_data = None):
@@ -128,6 +152,8 @@ class updatehosts(CBaseHostClass):
     def listMainMenu(self, cItem):
         try:
             #vszt = self.muves('1')
+            if not self.ebbtit(): return
+            if self.btps != '' and self.brdr != '': self.pbtp = self.btps.strip() + ' - ' + self.brdr.strip()
             n_hst = self.malvadst('1', '9', 'updatehosts_hostok')
             if n_hst != '' and self.aid:
                 self.aid_ki = 'ID: ' + n_hst + '\n'
@@ -139,13 +165,19 @@ class updatehosts(CBaseHostClass):
                 self.aid_ki = 'ID: ' + n_mgyr + '\n'
             else:
                 self.aid_ki = ''
-            msg_magyar = self.aid_ki + 'Az E2iPlayer magyarítását lehet itt végrehajtani.'
+            msg_magyar = self.aid_ki + 'Az E2iPlayer magyarítását lehet itt végrehajtani...'
+            n_mbm = self.malvadst('1', '9', 'updatehosts_beall_ment')
+            if n_mbm != '' and self.aid:
+                self.aid_ki = 'ID: ' + n_mbm + '\n'
+            else:
+                self.aid_ki = ''
+            msg_beall_ment = self.aid_ki + 'E2iPlayer magyar hostok beállításainak mentése/visszatöltése...'
             n_jav = self.malvadst('1', '9', 'updatehosts_javitas')
             if n_jav != '' and self.aid:
                 self.aid_ki = 'ID: ' + n_jav + '\n'
             else:
                 self.aid_ki = ''
-            msg_javitas = self.aid_ki + 'Az E2iPlayer különböző hibáinak javítására nyilik itt lehetőség.'
+            msg_javitas = self.aid_ki + 'Az E2iPlayer különböző hibáinak javítására nyilik itt lehetőség...'
             n_hu_min = self.malvadst('1', '9', 'updatehosts_hu_minimal_fo')
             if n_hu_min != '' and self.aid:
                 self.aid_ki = 'ID: ' + n_hu_min + '\n'
@@ -159,6 +191,7 @@ class updatehosts(CBaseHostClass):
                 self.aid_ki = ''
             msg_urllist = self.aid_ki + 'Blindspot féle urllist.stream fájlt lehet itt telepíteni, frissíteni.\nA stream fájlt az "Urllists player" hosttal (Egyéb csoport) lehet lejátszani a Live streams menüpontban...\n\nA "WEB HU PLAYER" host használatát javasoljuk, mert hamarosan a tartalom csak ott lesz elérhető!!!'
             MAIN_CAT_TAB = [{'category': 'list_main', 'title': 'Magyar hostok telepítése, frissítése', 'tab_id': 'hostok', 'desc': msg_host},
+                            {'category': 'list_main', 'title': 'Magyar hostok beállításainak mentése/visszatöltése', 'tab_id': 'beall_ment', 'desc': msg_beall_ment},
                             {'category': 'list_main', 'title': 'E2iPlayer magyarítása', 'tab_id': 'magyaritas', 'desc': msg_magyar},
                             {'category': 'list_main', 'title': 'E2iPlayer hibajavításai', 'tab_id': 'javitas', 'desc': msg_javitas},
                             {'category': 'list_main', 'title': 'Magyar minimál stílus', 'tab_id': 'magyar_minimal', 'desc': msg_magyar_minimal},
@@ -175,6 +208,8 @@ class updatehosts(CBaseHostClass):
                 self.Hostok_listaja(cItem)
             elif tabID == 'magyaritas':
                 self.Magyaritas(cItem)
+            elif tabID == 'beall_ment':
+                self.Beall_ment(cItem)
             elif tabID == 'javitas':
                 self.Javitas(cItem)
             elif tabID == 'magyar_minimal':
@@ -232,7 +267,7 @@ class updatehosts(CBaseHostClass):
             if host == self.WEBHUPLAYER:
                 ls = '\n(Webes tartalmak (Filmek, Gasztro, TV csatornák, Időkép, Tájak, ...) Blindspot szerkesztésében, YouTube tartalmak megjelenítése)'
             if host == self.AUTOHU:
-                ls = '\n(Magyar autós műsorakat jelenít meg - AUTOGRAM, GARAZS, SUPERCAR, FORMA1)'
+                ls = '\n(Magyar autós műsorakat jelenít meg - AUTOGRAM, GARAZS, SUPERCAR, TOTALCAR, FORMA1)'
             if host == self.M4SPORT:
                 ls = '\n(Az m4sport.hu sport műsorait jeleníti meg - Boxutca, Magyar foci, UEFA Bajnokok Ligája foci, Sporthírek, Sportközvetítések)'
         return ls
@@ -295,6 +330,32 @@ class updatehosts(CBaseHostClass):
         except Exception:
             printExc()
             
+    def Beall_ment(self, cItem):
+        try:
+            valasz, msg = self._usable()
+            if valasz:
+                self.susn('2', '9', 'updatehosts_beall_ment')
+                n_mmsb = self.malvadst('1', '9', 'updatehosts_beall_kiment')
+                if n_mmsb != '' and self.aid:
+                    self.aid_ki = 'ID: ' + n_mmsb + '\n'
+                else:
+                    self.aid_ki = ''
+                msg_beallit = self.aid_ki + 'Az E2iPlayer host beállításainak a mentését lehet itt végrehajtani...\nCsak az azonos "HU Telepítő" keretrendszerrel készített backup fájlok paraméterei tölthetők vissza!'
+                n_mast = self.malvadst('1', '9', 'updatehosts_beall_vissza')
+                if n_mast != '' and self.aid:
+                    self.aid_ki = 'ID: ' + n_mast + '\n'
+                else:
+                    self.aid_ki = ''
+                msg_visszaallit = self.aid_ki + 'Az E2iPlayer host beállításainak a visszatöltését  lehet itt végrehajtani...   Bacukup fájlnak léteznie kell!\nCsak az azonos "HU Telepítő" keretrendszerhez tartozó backup fájlok paraméterei töltődnek vissza!\n\nElőször telepítsd vissza azokat a hostokat amiket idáig használtál, s utána futtasd a visszatöltést...'
+                MEN_CAT_TAB = [{'category': 'list_second', 'title': 'Beállítások mentése', 'tab_id': 'beall_kiment', 'desc': msg_beallit},
+                               {'category': 'list_second', 'title': 'Beállítások visszatöltése', 'tab_id': 'beall_vissza', 'desc': msg_visszaallit}
+                              ]
+                self.listsTab(MEN_CAT_TAB, cItem)
+            else:
+                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+        except Exception:
+            printExc()
+            
     def Urllist_stream(self, cItem):
         try:
             valasz, msg = self._usable()
@@ -323,7 +384,7 @@ class updatehosts(CBaseHostClass):
                         self.susn('2', '9', 'updatehosts_blind_urlist')
                         self.urllist_telepites()
                 else:
-                    msg = 'A kék gomb, majd az Oldal beállításai segítségével megadhatod a kért adatokat.\nHa megfelelőek az előre beállított értékek, akkor ZÖLD gomb (Mentés) megnyomása!'
+                    msg = 'A KÉK gomb, majd az Oldal beállításai segítségével megadhatod a kért adatokat.\nHa megfelelőek az előre beállított értékek, akkor ZÖLD gomb (Mentés) megnyomása!'
                     self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
             elif tabID == 'hibajav_youtube':
                 self.susn('2', '9', 'updatehosts_yt_javitas')
@@ -334,6 +395,10 @@ class updatehosts(CBaseHostClass):
             elif tabID == 'minimal_visszaallit':
                 self.susn('2', '9', 'updatehosts_hu_minimal_alaph')
                 self.mlvat()
+            elif tabID == 'beall_kiment':
+                self.ehbkmt()
+            elif tabID == 'beall_vissza':
+                self.ehbvts()
             elif tabID == self.UPDATEHOSTS:
                 self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.UPDATEHOSTS,True,False,'HU host telepítő, frissítő')
@@ -733,6 +798,350 @@ class updatehosts(CBaseHostClass):
             rm(destination)
             rmtree(destination_dir, ignore_errors=True)
         return
+            
+    def cfadbvt(self, vltz='', rtk=''):
+        bv = False
+        bvrtk = vltz
+        try:
+            if vltz != '' and rtk != '':
+                if vltz == 'autohu_rtlmost_login':
+                    config.plugins.iptvplayer.autohu_rtlmost_login.value = rtk
+                    config.plugins.iptvplayer.autohu_rtlmost_login.save()
+                    configfile.save()
+                    bvrtk = ''
+                    bv = True
+                if vltz == 'autohu_rtlmost_password':
+                    config.plugins.iptvplayer.autohu_rtlmost_password.value = rtk
+                    config.plugins.iptvplayer.autohu_rtlmost_password.save()
+                    configfile.save()
+                    bvrtk = ''
+                    bv = True
+                if vltz == 'autohu_id':
+                    if rtk in ['False','false','True','true']:
+                        if rtk in ['False','false']:
+                            config.plugins.iptvplayer.autohu_id.value = False
+                        else:
+                            config.plugins.iptvplayer.autohu_id.value = True
+                        config.plugins.iptvplayer.autohu_id.save()
+                        configfile.save()
+                        bvrtk = ''
+                        bv = True
+                if vltz == 'webhuplayer_dir':
+                    config.plugins.iptvplayer.webhuplayer_dir.value = rtk
+                    config.plugins.iptvplayer.webhuplayer_dir.save()
+                    configfile.save()
+                    bvrtk = ''
+                    bv = True
+                if vltz == 'webmedia_dir':
+                    config.plugins.iptvplayer.webmedia_dir.value = rtk
+                    config.plugins.iptvplayer.webmedia_dir.save()
+                    configfile.save()
+                    bvrtk = ''
+                    bv = True
+                if vltz == 'ytmedia_dir':
+                    config.plugins.iptvplayer.ytmedia_dir.value = rtk
+                    config.plugins.iptvplayer.ytmedia_dir.save()
+                    configfile.save()
+                    bvrtk = ''
+                    bv = True
+                if vltz == 'webhuplayer_nezettseg':
+                    if rtk in ['False','false','True','true']:
+                        if rtk in ['False','false']:
+                            config.plugins.iptvplayer.webhuplayer_nezettseg.value = False
+                        else:
+                            config.plugins.iptvplayer.webhuplayer_nezettseg.value = True
+                        config.plugins.iptvplayer.webhuplayer_nezettseg.save()
+                        configfile.save()
+                        bvrtk = ''
+                        bv = True
+                if vltz == 'm4sport_id':
+                    if rtk in ['False','false','True','true']:
+                        if rtk in ['False','false']:
+                            config.plugins.iptvplayer.m4sport_id.value = False
+                        else:
+                            config.plugins.iptvplayer.m4sport_id.value = True
+                        config.plugins.iptvplayer.m4sport_id.save()
+                        configfile.save()
+                        bvrtk = ''
+                        bv = True
+                if vltz == 'mindigohu_login':
+                    config.plugins.iptvplayer.mindigohu_login.value = rtk
+                    config.plugins.iptvplayer.mindigohu_login.save()
+                    configfile.save()
+                    bvrtk = ''
+                    bv = True
+                if vltz == 'mindigohu_password':
+                    config.plugins.iptvplayer.mindigohu_password.value = rtk
+                    config.plugins.iptvplayer.mindigohu_password.save()
+                    configfile.save()
+                    bvrtk = ''
+                    bv = True
+                if vltz == 'mytvtelenorhu_login':
+                    config.plugins.iptvplayer.mytvtelenorhu_login.value = rtk
+                    config.plugins.iptvplayer.mytvtelenorhu_login.save()
+                    configfile.save()
+                    bvrtk = ''
+                    bv = True
+                if vltz == 'mytvtelenorhu_password':
+                    config.plugins.iptvplayer.mytvtelenorhu_login.value = rtk
+                    config.plugins.iptvplayer.mytvtelenorhu_login.save()
+                    configfile.save()
+                    bvrtk = ''
+                    bv = True
+                if vltz == 'rtlmosthu_login':
+                    config.plugins.iptvplayer.rtlmosthu_login.value = rtk
+                    config.plugins.iptvplayer.rtlmosthu_login.save()
+                    configfile.save()
+                    bvrtk = ''
+                    bv = True
+                if vltz == 'rtlmosthu_password':
+                    config.plugins.iptvplayer.rtlmosthu_password.value = rtk
+                    config.plugins.iptvplayer.rtlmosthu_password.save()
+                    configfile.save()
+                    bvrtk = ''
+                    bv = True
+                return bv, bvrtk  
+        except Exception:
+            return False, bvrtk
+            
+    def pfmahr(self, ided='', idefw='', idef=''):
+        encoding = 'utf-8'
+        try:
+            if ided != '' and idefw != '' and idef != '':
+                if os.path.isdir(ided):
+                    fpw = codecs.open(idefw, 'w', encoding, 'replace')
+                else:
+                    if mkdirs(ided): 
+                        fpw = codecs.open(idefw, 'w', encoding, 'replace')
+                    else:
+                        msg = 'A Host beállítások mentési könyvtára nem hozható létre!\nA KÉK gomb, majd az Oldal beállításai segítségével megadhatod a kért adatokat.\nHa megfelelőek az előre beállított értékek, akkor ZÖLD gomb (Mentés) megnyomása!'
+                        self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+                        return True
+                fpw.write("# HU Telepítő - v" + HOST_VERSION + "   |   Ne módosítsd ezt a fájlt!!!\n")
+                if self.cpve(config.plugins.iptvplayer.autohu_rtlmost_login.value) or self.cpve(config.plugins.iptvplayer.autohu_rtlmost_password.value) or self.cpve(config.plugins.iptvplayer.autohu_id.value):
+                    fpw.write("##################################################\n")
+                    fpw.write("# HOST: autohu\n")
+                    fpw.write("##################################################\n")
+                    if self.cpve(config.plugins.iptvplayer.autohu_rtlmost_login.value):
+                        fpw.write("%s=%s\n" % ('autohu_rtlmost_login',config.plugins.iptvplayer.autohu_rtlmost_login.value))
+                    if self.cpve(config.plugins.iptvplayer.autohu_rtlmost_password.value):
+                        fpw.write("%s=%s\n" % ('autohu_rtlmost_password',config.plugins.iptvplayer.autohu_rtlmost_password.value))
+                    if self.cpve(config.plugins.iptvplayer.autohu_id.value):
+                        fpw.write("%s=%s\n" % ('autohu_id',config.plugins.iptvplayer.autohu_id.value))
+                    fpw.write("\n")
+                if self.cpve(config.plugins.iptvplayer.webhuplayer_dir.value) or self.cpve(config.plugins.iptvplayer.webmedia_dir.value) or self.cpve(config.plugins.iptvplayer.ytmedia_dir.value) or self.cpve(config.plugins.iptvplayer.webhuplayer_nezettseg.value):
+                    fpw.write("##################################################\n")
+                    fpw.write("# HOST: webhuplayer\n")
+                    fpw.write("##################################################\n")
+                    if self.cpve(config.plugins.iptvplayer.webhuplayer_dir.value):
+                        fpw.write("%s=%s\n" % ('webhuplayer_dir',config.plugins.iptvplayer.webhuplayer_dir.value))
+                    if self.cpve(config.plugins.iptvplayer.webmedia_dir.value):
+                        fpw.write("%s=%s\n" % ('webmedia_dir',config.plugins.iptvplayer.webmedia_dir.value))
+                    if self.cpve(config.plugins.iptvplayer.ytmedia_dir.value):
+                        fpw.write("%s=%s\n" % ('ytmedia_dir',config.plugins.iptvplayer.ytmedia_dir.value))
+                    if self.cpve(config.plugins.iptvplayer.webhuplayer_nezettseg.value):
+                        fpw.write("%s=%s\n" % ('webhuplayer_nezettseg',config.plugins.iptvplayer.webhuplayer_nezettseg.value))
+                    fpw.write("\n")
+                if self.cpve(config.plugins.iptvplayer.m4sport_id.value):
+                    fpw.write("##################################################\n")
+                    fpw.write("# HOST: m4sport\n")
+                    fpw.write("##################################################\n")
+                    if self.cpve(config.plugins.iptvplayer.m4sport_id.value):
+                        fpw.write("%s=%s\n" % ('m4sport_id',config.plugins.iptvplayer.m4sport_id.value))
+                    fpw.write("\n")
+                if self.cpve(config.plugins.iptvplayer.mindigohu_login.value) or self.cpve(config.plugins.iptvplayer.mindigohu_password.value):
+                    fpw.write("##################################################\n")
+                    fpw.write("# HOST: mindigo\n")
+                    fpw.write("##################################################\n")
+                    if self.cpve(config.plugins.iptvplayer.mindigohu_login.value):
+                        fpw.write("%s=%s\n" % ('mindigohu_login',config.plugins.iptvplayer.mindigohu_login.value))
+                    if self.cpve(config.plugins.iptvplayer.mindigohu_password.value):
+                        fpw.write("%s=%s\n" % ('mindigohu_password',config.plugins.iptvplayer.mindigohu_password.value))
+                    fpw.write("\n")
+                if self.cpve(config.plugins.iptvplayer.mytvtelenorhu_login.value) or self.cpve(config.plugins.iptvplayer.mytvtelenorhu_password.value):
+                    fpw.write("##################################################\n")
+                    fpw.write("# HOST: mytvtelenor\n")
+                    fpw.write("##################################################\n")
+                    if self.cpve(config.plugins.iptvplayer.mytvtelenorhu_login.value):
+                        fpw.write("%s=%s\n" % ('mytvtelenorhu_login',config.plugins.iptvplayer.mytvtelenorhu_login.value))
+                    if self.cpve(config.plugins.iptvplayer.mytvtelenorhu_password.value):
+                        fpw.write("%s=%s\n" % ('mytvtelenorhu_password',config.plugins.iptvplayer.mytvtelenorhu_password.value))
+                    fpw.write("\n")
+                if self.cpve(config.plugins.iptvplayer.rtlmosthu_login.value) or self.cpve(config.plugins.iptvplayer.rtlmosthu_password.value):
+                    fpw.write("##################################################\n")
+                    fpw.write("# HOST: rtlmost\n")
+                    fpw.write("##################################################\n")
+                    if self.cpve(config.plugins.iptvplayer.rtlmosthu_login.value):
+                        fpw.write("%s=%s\n" % ('rtlmosthu_login',config.plugins.iptvplayer.rtlmosthu_login.value))
+                    if self.cpve(config.plugins.iptvplayer.rtlmosthu_password.value):
+                        fpw.write("%s=%s\n" % ('rtlmosthu_password',config.plugins.iptvplayer.rtlmosthu_password.value))
+                    fpw.write("\n")
+                fpw.flush()
+                os.fsync(fpw.fileno())
+                fpw.close()
+                os.rename(idefw, ided + '/' + idef)
+                if fileExists(idefw):
+                    rm(idefw)
+                return False
+            else:
+                return True
+        except Exception:
+            if fileExists(idefw):
+                rm(idefw)
+            return True
+        
+    def ehbvts(self):
+        hiba = False
+        nsk = False
+        msg = ''
+        hpsz = ''
+        tmb = []
+        encoding = 'utf-8'
+        try:
+            if self.cpve(config.plugins.iptvplayer.hostmentes_dir.value) and self.cpve(config.plugins.iptvplayer.hostmentes_file.value):
+                ided = config.plugins.iptvplayer.hostmentes_dir.value
+                idef = config.plugins.iptvplayer.hostmentes_file.value
+                if ided != '' and ided.endswith('/'):
+                    ided = ided[:-1]
+                idefp = ided + '/' + idef.strip()
+                try:
+                    if fileExists(idefp):
+                        self.susn('2', '9', 'updatehosts_beall_vissza')
+                        with codecs.open(idefp, 'r', encoding, 'replace') as fpr:
+                            data = fpr.read()
+                        if len(data) > 0:
+                            if type(data) == type(u''): data = data.encode('utf-8', 'replace')
+                            data = self.cm.ph.getAllItemsBeetwenMarkers(data, '###', '\n\n', False)
+                            if len(data) > 0:
+                                for item in data:
+                                    tstm = item.split('\n')
+                                    if len(tstm) > 2:
+                                        if len(tstm[1]) > 0:
+                                            if '# HOST:' in tstm[1]:
+                                                hn = tstm[1].replace('# HOST:','').strip()
+                                                if fileExists(self.IH + self.HS + '/host' + hn + '.py'):
+                                                    for it in tstm:
+                                                        if it == '' or it == '\n' or it.startswith('#'):
+                                                            continue
+                                                        tit = it.replace('/n','').strip()
+                                                        ltp = tit.find('=')
+                                                        if -1 < ltp:
+                                                            try:
+                                                                tit_k = tit[:ltp].strip()
+                                                                tit_v = tit[ltp+1:].strip()
+                                                                if tit_k == '' and tit_v == '': continue
+                                                                skr, bvrtk = self.cfadbvt(tit_k,tit_v)
+                                                                if not skr:
+                                                                    hpsz = hpsz + ',  ' + bvrtk
+                                                                    nsk = True
+                                                            except Exception:
+                                                                continue
+                                                        else:
+                                                            hpsz = hpsz + ', ' + tit
+                                                            nsk = True
+                                                            continue
+                                                else:
+                                                    continue
+                                            else:
+                                                continue
+                                        else:
+                                            continue
+                                    else:
+                                        continue
+                            else:
+                                hiba = True
+                        else:
+                            hiba = True
+                        if hiba:
+                            if msg == '':
+                                msg = 'Hiba: 701 - Nemsikerült a Beállítások visszatöltése!'
+                            title = 'A Beállítások visszatöltése nemsikerült!'
+                            desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+                            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+                        else:
+                            if nsk:
+                                if hpsz.startswith(','): hpsz = hpsz[3:]
+                                szvg = 'Hiba ezeknél a soroknál:  ' + hpsz
+                                msg = 'Hibás visszatöltés!!!\n\nVárj, mindjárt megtudod, hogy hol található a hiba...'
+                                title = 'A Beállítások visszatöltése végrehajtva - Hibák vannak'
+                                desc = 'Hibásak a ' + ided.replace('/',' / ').strip() + ' / ' + idef.strip() + ' fájlban lévő egyes paraméterek!\n\nNézd át és javítsd ki azokat, majd futtasd ismét a "Beállítások visszatöltése"-t!  Ha ezeket nem teszed meg az hibás működést eredményez!!!\nNyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón és javítsd ki a hibát.\n\n' + szvg
+                                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 10 )
+                            else:
+                                szvg = ''
+                                msg = 'Sikerült a Beállítások visszatöltése!\n' + szvg + '\nKezelőfelület újraindítása szükséges. Újraindítsam most?'
+                                title = 'A Beállítások visszatöltése végrehajtva'
+                                desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a visszatöltés!!!'
+                                try:
+                                    ret = self.sessionEx.waitForFinishOpen(MessageBox, msg, type=MessageBox.TYPE_YESNO, default=True)
+                                    if ret[0]:
+                                        try:
+                                            desc = 'A kezelőfelület most újraindul...'
+                                            quitMainloop(3)
+                                        except Exception:
+                                            msg = 'Hiba: 702 - Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
+                                            desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a visszatöltés!!!'
+                                            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )
+                                except Exception:
+                                    msg = 'Hiba: 703 - Nem sikerült az újraindítás. Indítsd újra a Kezelőfelületet manuálisan!'
+                                    desc = 'Nyomd meg a Kilépés gombot!  -  PIROS gomb a távirányítón,\n\nmajd Kezelőfelület újraindítása, vagy reboot.  =>  Meg kell tenni ezt, mert csak így sikeres a visszatöltés!!!'
+                                    self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 15 )
+                    else:
+                        desc = 'A backup fájl nem található itt:   ' + ided.replace('/',' / ').strip() + ' / ' + idef.strip() + '\n\nHiányzik a fájl, vagy rossz az Oldal beállítás (KÉK gomb)!\nNyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+                        title = 'Beállítások visszatöltése nemsikerült'
+                except Exception:
+                    title = 'Hiba: 705 - A Beállítások visszatöltése nemsikerült!'
+                    desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+                params = dict()
+                params.update({'good_for_fav': False, 'category': 'list_second', 'title': title, 'tab_id': 'beall_vissza', 'desc': desc})
+                self.addDir(params)
+            else:
+                msg = 'Nem sikerült a beállítások visszatöltése!\n\nA KÉK gomb, majd az Oldal beállításai segítségével megadhatod a kért adatokat.\nHa megfelelőek az előre beállított értékek, akkor ZÖLD gomb (Mentés) megnyomása!'
+                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+        except Exception:
+            msg = 'Nem sikerült a beállítások visszatöltése!'
+            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+        
+    def ehbkmt(self):
+        msg = ''
+        encoding = 'utf-8'
+        try:
+            if self.cpve(config.plugins.iptvplayer.hostmentes_dir.value) and self.cpve(config.plugins.iptvplayer.hostmentes_file.value):
+                ided = config.plugins.iptvplayer.hostmentes_dir.value
+                idef = config.plugins.iptvplayer.hostmentes_file.value
+                if ided != '' and ided.endswith('/'):
+                    ided = ided[:-1]
+                idefw = ided + '/' + idef + '.writing'
+                msg = 'A mentés helye:  ' + ided.replace('/',' / ').strip() + ' / ' + idef.strip() + '\nFolytathatom?'
+                msg += '\n\nHa máshova szeretnéd, akkor itt nem - utána KÉK gomb, majd az Oldal beállításai.\nOtt az adatok megadása, s utána a ZÖLD gomb (Mentés) megnyomása!'
+                ret = self.sessionEx.waitForFinishOpen(MessageBox, msg, type=MessageBox.TYPE_YESNO, default=True)
+                if ret[0]:
+                    self.susn('2', '9', 'updatehosts_beall_kiment')
+                    if not self.pfmahr(ided, idefw, idef):
+                        desc = 'A mentés sikerült!  A backup fájl itt található:  ' + ided.replace('/',' / ').strip() + ' / ' + idef.strip() + '\n\nNyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+                        title = 'Beállítások mentése - sikerült'
+                        params = dict()
+                        params.update({'good_for_fav': False, 'category': 'list_second', 'title': title, 'tab_id': 'beall_kiment', 'desc': desc})
+                        self.addDir(params)
+                    else:
+                        if fileExists(idefw):
+                            rm(idefw)
+                        desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+                        title = 'Beállítások mentése nemsikerült'
+                        params = dict()
+                        params.update({'good_for_fav': False, 'category': 'list_second', 'title': title, 'tab_id': 'beall_kiment', 'desc': desc})
+                        self.addDir(params)
+                else:
+                    desc = 'Nyomd meg a Vissza gombot!  -  EXIT / BACK gomb a távirányítón'
+                    title = 'Beállítások mentése'
+                    params = dict()
+                    params.update({'good_for_fav': False, 'category': 'list_second', 'title': title, 'tab_id': 'beall_kiment', 'desc': desc})
+                    self.addDir(params)
+            else:
+                msg = 'Nem sikerült a beállítások mentése!\n\nA KÉK gomb, majd az Oldal beállításai segítségével megadhatod a kért adatokat.\nHa megfelelőek az előre beállított értékek, akkor ZÖLD gomb (Mentés) megnyomása!'
+                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+        except Exception:
+            msg = 'Nem sikerült a beállítások mentése!'
+            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
         
     def mlvat(self):
         hiba = False
@@ -1290,6 +1699,17 @@ class updatehosts(CBaseHostClass):
             rm(destination)
             rmtree(destination_dir, ignore_errors=True)
         return verzio
+        
+    def ebbtit(self):
+        try:
+            if '' == self.btps.strip() or '' == self.brdr.strip():
+                msg = 'A Set-top-Box típusát és a használt rendszer (image) nevét egyszer meg kell adni!\n\nA kompatibilitás és a megfelelő használat miatt kellenek ezek az adatok a programnak.\nKérlek, a helyes működéshez a valóságnak megfelelően írd be azokat.\n\nA KÉK gomb, majd az Oldal beállításai segítségével megadhatod a kért adatokat.\nHa ott beírtad az értékeket, akkor ZÖLD gomb (Mentés) megnyomása!\n\nKilépek innen és utána megnyomom a KÉK gombot?'
+                ret = self.sessionEx.waitForFinishOpen(MessageBox, msg, type=MessageBox.TYPE_YESNO, default=True)
+                return False
+            else:
+                return True
+        except Exception:
+            return False
         
     def menuItemHun(self):
         msg = ''
