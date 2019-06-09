@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-06-08 by Alec - updatehosts HU host telepítő
+# 2019-06-09 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "2.5"
+HOST_VERSION = "2.6"
 ###################################################
 # LOCAL import
 ###################################################
@@ -67,20 +67,20 @@ config.plugins.iptvplayer.hostmentes_file = ConfigText(default = "hostbeallitaso
 config.plugins.iptvplayer.b_urllist_dir = ConfigText(default = "/hdd", fixed_size = False)
 config.plugins.iptvplayer.b_urllist_file = ConfigText(default = "urllist.stream", fixed_size = False)
 config.plugins.iptvplayer.updatehosts_id = ConfigYesNo(default = False)
-config.plugins.iptvplayer.autohu_rtlmost_login = ConfigText()
-config.plugins.iptvplayer.autohu_rtlmost_password = ConfigText()
-config.plugins.iptvplayer.autohu_id = ConfigYesNo()
-config.plugins.iptvplayer.webhuplayer_dir = ConfigText()
-config.plugins.iptvplayer.webmedia_dir = ConfigText()
-config.plugins.iptvplayer.ytmedia_dir = ConfigText()
-config.plugins.iptvplayer.webhuplayer_nezettseg = ConfigYesNo()
-config.plugins.iptvplayer.m4sport_id = ConfigYesNo()
-config.plugins.iptvplayer.mindigohu_login = ConfigText()
-config.plugins.iptvplayer.mindigohu_password = ConfigText()
-config.plugins.iptvplayer.mytvtelenorhu_login = ConfigText()
-config.plugins.iptvplayer.mytvtelenorhu_password = ConfigText()
-config.plugins.iptvplayer.rtlmosthu_login = ConfigText()
-config.plugins.iptvplayer.rtlmosthu_password = ConfigText()
+config.plugins.iptvplayer.autohu_rtlmost_login = ConfigText(default = "", fixed_size = False)
+config.plugins.iptvplayer.autohu_rtlmost_password = ConfigText(default = "", fixed_size = False)
+config.plugins.iptvplayer.autohu_id = ConfigYesNo(default = False)
+config.plugins.iptvplayer.webhuplayer_dir = ConfigText(default = "/hdd/webhuplayer", fixed_size = False)
+config.plugins.iptvplayer.webmedia_dir = ConfigText(default = "/hdd/webmedia", fixed_size = False)
+config.plugins.iptvplayer.ytmedia_dir = ConfigText(default = "/hdd/ytmedia", fixed_size = False)
+config.plugins.iptvplayer.webhuplayer_nezettseg = ConfigYesNo(default = False)
+config.plugins.iptvplayer.m4sport_id = ConfigYesNo(default = False)
+config.plugins.iptvplayer.mindigohu_login = ConfigText(default = "", fixed_size = False)
+config.plugins.iptvplayer.mindigohu_password = ConfigText(default = "", fixed_size = False)
+config.plugins.iptvplayer.mytvtelenorhu_login = ConfigText(default = "", fixed_size = False)
+config.plugins.iptvplayer.mytvtelenorhu_password = ConfigText(default = "", fixed_size = False)
+config.plugins.iptvplayer.rtlmosthu_login = ConfigText(default = "", fixed_size = False)
+config.plugins.iptvplayer.rtlmosthu_password = ConfigText(default = "", fixed_size = False)
 
 def GetConfigList():
     optionList = []
