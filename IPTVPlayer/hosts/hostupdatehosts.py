@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-06-09 by Alec - updatehosts HU host telepítő
+# 2019-06-18 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "2.6"
+HOST_VERSION = "2.7"
 ###################################################
 # LOCAL import
 ###################################################
@@ -131,6 +131,7 @@ class updatehosts(CBaseHostClass):
         self.WEBHUPLAYER = zlib.decompress(base64.b64decode('eJwrT03KKC3ISaxMLQIAG+YEqQ=='))
         self.AUTOHU = zlib.decompress(base64.b64decode('eJxLLC3JzygFAAj3Apc='))
         self.M4SPORT = zlib.decompress(base64.b64decode('eJzLNSkuyC8qAQAK3gLa'))
+        self.VIDEA = zlib.decompress(base64.b64decode('eJwry0xJTQQABk4CCg=='))
         self.aid = config.plugins.iptvplayer.updatehosts_id.value
         self.aid_ki = ''
         self.btps = config.plugins.iptvplayer.boxtipus.value
@@ -238,6 +239,7 @@ class updatehosts(CBaseHostClass):
                 HOST_CAT_TAB.append(self.menuItem(self.WEBHUPLAYER))
                 HOST_CAT_TAB.append(self.menuItem(self.AUTOHU))
                 HOST_CAT_TAB.append(self.menuItem(self.M4SPORT))
+                HOST_CAT_TAB.append(self.menuItem(self.VIDEA))
                 HOST_CAT_TAB = sorted(HOST_CAT_TAB, key=lambda i: (i['azon'], i['title']))
                 self.listsTab(HOST_CAT_TAB, cItem)
             else:
@@ -270,6 +272,8 @@ class updatehosts(CBaseHostClass):
                 ls = '\n(Magyar autós műsorakat jelenít meg - AUTOGRAM, GARAZS, SUPERCAR, TOTALCAR, FORMA1)'
             if host == self.M4SPORT:
                 ls = '\n(Az m4sport.hu sport műsorait jeleníti meg - Boxutca, Magyar foci, UEFA Bajnokok Ligája foci, Sporthírek, Sportközvetítések)'
+            if host == self.VIDEA:
+                ls = '\n(A videa.hu videóit jeleníti meg különböző kategóriákban, csatornákban)'
         return ls
             
     def Magyaritas(self, cItem):
@@ -432,6 +436,9 @@ class updatehosts(CBaseHostClass):
             elif tabID == self.M4SPORT:
                 self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.M4SPORT,True,False,'https://www.m4sport.hu')
+            elif tabID == self.VIDEA:
+                self.susn('2', '9', 'host_' + tabID)
+                self.host_telepites(self.VIDEA,True,False,'https://videa.hu')
             else:
                 return
         except Exception:
