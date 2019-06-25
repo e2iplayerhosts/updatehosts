@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-06-18 by Alec - updatehosts HU host telepítő
+# 2019-06-26 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "2.7"
+HOST_VERSION = "2.8"
 ###################################################
 # LOCAL import
 ###################################################
@@ -178,7 +178,7 @@ class updatehosts(CBaseHostClass):
                 self.aid_ki = 'ID: ' + n_jav + '\n'
             else:
                 self.aid_ki = ''
-            msg_javitas = self.aid_ki + 'Az E2iPlayer különböző hibáinak javítására nyilik itt lehetőség...'
+            msg_javitas = self.aid_ki + 'Az E2iPlayer különböző hibáinak javítására nyilik itt lehetőség...\n(YouTube, parserek, egyéb belső fúnkciók)'
             n_hu_min = self.malvadst('1', '9', 'updatehosts_hu_minimal_fo')
             if n_hu_min != '' and self.aid:
                 self.aid_ki = 'ID: ' + n_hu_min + '\n'
@@ -299,7 +299,7 @@ class updatehosts(CBaseHostClass):
                     self.aid_ki = 'ID: ' + n_yjt + '\n'
                 else:
                     self.aid_ki = ''
-                msg_jav = self.aid_ki + '2019.04.24.\n\nAz alábbi hibára ad megoldást ez a javítás:\n"token" parameter not in video info\n\n(Csak egyszer kell végrehajtani!)'
+                msg_jav = self.aid_ki + '2019.04.24. | 2019.06.23.\n\nAz alábbi hibákra ad megoldást ez a javítás:\n"token" parameter not in video info,  "Encryption function name extraction failed!"\n\n(Csak egyszer kell végrehajtani, ha a hiba jelentkezik!)'
                 HIBAJAV_CAT_TAB = [{'category': 'list_second', 'title': 'YouTube hiba javítása', 'tab_id': 'hibajav_youtube', 'desc': msg_jav}
                                   ]
                 self.listsTab(HIBAJAV_CAT_TAB, cItem)
