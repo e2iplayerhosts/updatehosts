@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-06-26 by Alec - updatehosts HU host telepítő
+# 2019-07-11 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "2.8"
+HOST_VERSION = "2.9"
 ###################################################
 # LOCAL import
 ###################################################
@@ -160,7 +160,13 @@ class updatehosts(CBaseHostClass):
                 self.aid_ki = 'ID: ' + n_hst + '\n'
             else:
                 self.aid_ki = ''
-            msg_host = self.aid_ki + 'v' + HOST_VERSION + '  |  Magyar Hostok listája  -  telepítés, frissítés\n\nA hostok betöltése több időt vehet igénybe!  A letöltés ideje függ az internet sebességétől, illetve a gyűjtő oldal leterheltségétől is...\nVárd meg míg a hostok listája megjelenik. Ez eltarthat akár 1-2 percig is.\nA host gyűjtő oldalán néha hiba előfordulhat...'
+            msg_host = self.aid_ki + 'v' + HOST_VERSION + '  |  Magyar Hostok listája  -  telepítés, frissítés\n\nA hostok betöltése több időt vehet igénybe!  A letöltés ideje függ az internet sebességétől, illetve a gyűjtő oldal leterheltségétől is...\nVárd meg míg a hostok listája megjelenik. Ez eltarthat akár 1-2 percig is.'
+            n_mtps = self.malvadst('1', '9', 'updatehosts_main_telepites')
+            if n_mtps != '' and self.aid:
+                self.aid_ki = 'ID: ' + n_mtps + '\n'
+            else:
+                self.aid_ki = ''
+            msg_telepites = self.aid_ki + 'Az E2iPlayer lejátszó program telepítését, frissítését lehet itt végrehajtani...'
             n_mgyr = self.malvadst('1', '9', 'updatehosts_magyaritas')
             if n_mgyr != '' and self.aid:
                 self.aid_ki = 'ID: ' + n_mgyr + '\n'
@@ -178,7 +184,7 @@ class updatehosts(CBaseHostClass):
                 self.aid_ki = 'ID: ' + n_jav + '\n'
             else:
                 self.aid_ki = ''
-            msg_javitas = self.aid_ki + 'Az E2iPlayer különböző hibáinak javítására nyilik itt lehetőség...\n(YouTube, parserek, egyéb belső fúnkciók)'
+            msg_javitas = self.aid_ki + 'Az E2iPlayer különböző hibáinak javítására nyilik itt lehetőség...\n(YouTube, parserek, egyéb belső funkciók)'
             n_hu_min = self.malvadst('1', '9', 'updatehosts_hu_minimal_fo')
             if n_hu_min != '' and self.aid:
                 self.aid_ki = 'ID: ' + n_hu_min + '\n'
@@ -193,8 +199,9 @@ class updatehosts(CBaseHostClass):
             msg_urllist = self.aid_ki + 'Blindspot féle urllist.stream fájlt lehet itt telepíteni, frissíteni.\nA stream fájlt az "Urllists player" hosttal (Egyéb csoport) lehet lejátszani a Live streams menüpontban...\n\nA "WEB HU PLAYER" host használatát javasoljuk, mert hamarosan a tartalom csak ott lesz elérhető!!!'
             MAIN_CAT_TAB = [{'category': 'list_main', 'title': 'Magyar hostok telepítése, frissítése', 'tab_id': 'hostok', 'desc': msg_host},
                             {'category': 'list_main', 'title': 'Magyar hostok beállításainak mentése/visszatöltése', 'tab_id': 'beall_ment', 'desc': msg_beall_ment},
+                            {'category': 'list_main', 'title': 'E2iPlayer telepítése, frissítése', 'tab_id': 'telepites', 'desc': msg_telepites},
                             {'category': 'list_main', 'title': 'E2iPlayer magyarítása', 'tab_id': 'magyaritas', 'desc': msg_magyar},
-                            {'category': 'list_main', 'title': 'E2iPlayer hibajavításai', 'tab_id': 'javitas', 'desc': msg_javitas},
+                            #{'category': 'list_main', 'title': 'E2iPlayer hibajavításai', 'tab_id': 'javitas', 'desc': msg_javitas},
                             {'category': 'list_main', 'title': 'Magyar minimál stílus', 'tab_id': 'magyar_minimal', 'desc': msg_magyar_minimal},
                             {'category': 'list_main', 'title': 'Urllist fájl telepítése', 'tab_id': 'urllist', 'desc': msg_urllist}
                            ]
@@ -209,6 +216,8 @@ class updatehosts(CBaseHostClass):
                 self.Hostok_listaja(cItem)
             elif tabID == 'magyaritas':
                 self.Magyaritas(cItem)
+            elif tabID == 'telepites':
+                self.MainTelepites(cItem)
             elif tabID == 'beall_ment':
                 self.Beall_ment(cItem)
             elif tabID == 'javitas':
@@ -360,6 +369,32 @@ class updatehosts(CBaseHostClass):
         except Exception:
             printExc()
             
+    def MainTelepites(self, cItem):
+        try:
+            valasz, msg = self._usable()
+            if valasz:
+                self.susn('2', '9', 'updatehosts_main_telepites')
+                n_mmsb = self.malvadst('1', '9', 'updatehosts_p_telepites')
+                if n_mmsb != '' and self.aid:
+                    self.aid_ki = 'ID: ' + n_mmsb + '\n'
+                else:
+                    self.aid_ki = ''
+                msg_p_telepit = self.aid_ki + 'Az E2iPlayer lejátszó program telepítését lehet itt végrehajtani...\n\nFigyelem!!!\nTeljesen új, komplett E2iPlayer települ. Egyes beállítások elveszhetnek, illetve módosulhatnak!\nTelepítés előtt javasolt a beállítások mentése...'
+                n_mast = self.malvadst('1', '9', 'updatehosts_p_frissites')
+                if n_mast != '' and self.aid:
+                    self.aid_ki = 'ID: ' + n_mast + '\n'
+                else:
+                    self.aid_ki = ''
+                msg_p_frissit = self.aid_ki + 'Az E2iPlayer lejátszó program frissítését lehet itt végrehajtani...\n\nA meglévő program frissül!\nAz előző frissítés óta történt változások települnek.'
+                MT_CAT_TAB = [{'category': 'list_second', 'title': 'Telepítés', 'tab_id': 'p_telepit', 'desc': msg_p_telepit},
+                               {'category': 'list_second', 'title': 'Frissítés', 'tab_id': 'p_frissit', 'desc': msg_p_frissit}
+                              ]
+                self.listsTab(MT_CAT_TAB, cItem)
+            else:
+                self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
+        except Exception:
+            printExc()
+            
     def Urllist_stream(self, cItem):
         try:
             valasz, msg = self._usable()
@@ -393,6 +428,12 @@ class updatehosts(CBaseHostClass):
             elif tabID == 'hibajav_youtube':
                 self.susn('2', '9', 'updatehosts_yt_javitas')
                 self.ytjv()
+            elif tabID == 'p_telepit':
+                self.susn('2', '9', 'updatehosts_p_telepites')
+                self.pttpts()
+            elif tabID == 'p_frissit':
+                self.susn('2', '9', 'updatehosts_p_frissites')
+                self.ptfrts()
             elif tabID == 'minimal_beallit':
                 self.susn('2', '9', 'updatehosts_hu_minimal_beal')
                 self.mlmsbt()
@@ -1226,6 +1267,24 @@ class updatehosts(CBaseHostClass):
             msg = 'Nincs mit visszaállítani!\nCsak a "Magyar minimál stílus" csoportosítását lehet visszaállítani\naz Alapértelmezett csoportosításra.'
             self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
             
+    def pttpts(self):
+        bv = ''
+        try:
+            msg = 'Jelenleg ez a funkció még nem üzemel!\nDolgozom rajta...\n\nNézz vissza késöbb.'
+            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 20 )
+            return bv
+        except Exception:
+            return ''
+            
+    def ptfrts(self):
+        bv = ''
+        try:
+            msg = 'Jelenleg ez a funkció még nem üzemel!\nDolgozom rajta...\n\nNézz vissza késöbb.'
+            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 20 )
+            return bv
+        except Exception:
+            return ''
+        
     def mlmsbt(self):
         encoding = 'utf-8'
         hiba = False
@@ -1355,7 +1414,7 @@ class updatehosts(CBaseHostClass):
             elif not os.path.isdir(self.IH):
                 msg = 'Hiba: 103 - Nem megfelelő E2iPlayer könyvtár!'
             elif FOUND_SUB == False:
-                msg = 'Hiba: 104 - Sajnos nem kompatibilis a set-top-box rendszered a használathoz!\nsubprocess kell a használathoz, telepítsd azt!'
+                msg = 'Hiba: 104 - Sajnos nem kompatibilis a set-top-box rendszered a használathoz!\nsubprocess modul kell a használathoz, telepítsd azt!'
             else:
                 valasz = True
         except Exception:
