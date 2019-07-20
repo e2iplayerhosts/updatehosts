@@ -391,8 +391,10 @@ class updatehosts(CBaseHostClass):
                 uvk = self.vohfg(self.vivn,self.geteprvz())
                 if uvk:
                     n_tt = 'Telepítés  -  Új verzió elérhető'
+                    n_tft = 'Frissítés  -  A meglévő verzió frissíthető'
                 else:
                     n_tt = 'Telepítés'
+                    n_tft = 'Frissítés'
                 n_mmsb = self.malvadst('1', '9', 'updatehosts_p_telepites')
                 if n_mmsb != '' and self.aid:
                     self.aid_ki = 'ID: ' + n_mmsb + '\n'
@@ -411,9 +413,9 @@ class updatehosts(CBaseHostClass):
                 else:
                     self.aid_ki = ''
                 msg_p_valtozas = self.aid_ki + 'Az E2iPlayer lejátszó változásait lehet it megnézni...'
-                MT_CAT_TAB = [{'category': 'list_second', 'title': n_tt, 'tab_id': 'p_telepit', 'desc': msg_p_telepit},
-                              {'category': 'list_second', 'title': 'Frissítés', 'tab_id': 'p_frissit', 'desc': msg_p_frissit},
-                              {'category': 'list_second', 'title': 'Változások listája', 'tab_id': 'p_valtozas', 'desc': msg_p_valtozas}
+                MT_CAT_TAB = [{'category': 'list_second', 'title': 'Változások listája', 'tab_id': 'p_valtozas', 'desc': msg_p_valtozas},
+                              {'category': 'list_second', 'title': n_tft, 'tab_id': 'p_frissit', 'desc': msg_p_frissit},
+                              {'category': 'list_second', 'title': n_tt, 'tab_id': 'p_telepit', 'desc': msg_p_telepit}
                              ]
                 self.listsTab(MT_CAT_TAB, cItem)
             else:
