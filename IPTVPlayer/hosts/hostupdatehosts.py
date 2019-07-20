@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-07-19 by Alec - updatehosts HU host telepítő
+# 2019-07-20 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "3.1"
+HOST_VERSION = "3.2"
 ###################################################
 # LOCAL import
 ###################################################
@@ -160,7 +160,7 @@ class updatehosts(CBaseHostClass):
             if not self.ebbtit(): return
             if self.btps != '' and self.brdr != '': self.pbtp = self.btps.strip() + ' - ' + self.brdr.strip()
             uvk = self.vohfg(self.vivn,self.geteprvz())
-            if uvk: msg_uve = '- új E2iPlayer lejátszó elérhető - telepíthető, frissíthető  ->  először ezt csináld meg!\n'
+            if uvk: msg_uve = '- új E2iPlayer lejátszó elérhető (változások listáját nézd meg)  ->  először ezt csináld meg!\n'
             msg_muve = self.mgyerz()
             if msg_muve != '': msg_muve += '\n'
             msg_huve = self.herzs()
@@ -413,7 +413,7 @@ class updatehosts(CBaseHostClass):
                 msg_p_valtozas = self.aid_ki + 'Az E2iPlayer lejátszó változásait lehet it megnézni...'
                 MT_CAT_TAB = [{'category': 'list_second', 'title': n_tt, 'tab_id': 'p_telepit', 'desc': msg_p_telepit},
                               {'category': 'list_second', 'title': 'Frissítés', 'tab_id': 'p_frissit', 'desc': msg_p_frissit},
-                              {'category': 'list_second', 'title': 'Változsások listája', 'tab_id': 'p_valtozas', 'desc': msg_p_valtozas}
+                              {'category': 'list_second', 'title': 'Változások listája', 'tab_id': 'p_valtozas', 'desc': msg_p_valtozas}
                              ]
                 self.listsTab(MT_CAT_TAB, cItem)
             else:
@@ -478,7 +478,7 @@ class updatehosts(CBaseHostClass):
                     self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_ERROR, timeout = 20 )
             elif tabID == 'p_valtozas':
                 self.susn('2', '9', 'updatehosts_p_valtozas')
-                self.elrvtzl()
+                self.elrvtzl(cItem)
             elif tabID == 'minimal_beallit':
                 self.susn('2', '9', 'updatehosts_hu_minimal_beal')
                 self.mlmsbt()
@@ -1415,14 +1415,45 @@ class updatehosts(CBaseHostClass):
         except Exception:
             return ''
             
-    def elrvtzl(self):
-        bv = ''
+    def elrvtzl(self,cItem):
+        uhe = zlib.decompress(base64.b64decode('eJzLKCkpKLbS1y9KLNdLzyzJKE0qLU4tSs7PK0nNK9FLzs/Vd8rJzEspLsgvMTfTTzXKDMhJrEwt0s9NLC4BUp4BIWFQkeSMxLz01GK9kooSAGbuIAU='))
+        ln = 0
+        dsc = ''
+        dtm = []
+        lrs = []
         try:
-            msg = 'Jelenleg ez a funkció még nem üzemel!\nDolgozom rajta...\n\nNézz vissza késöbb.'
-            self.sessionEx.open(MessageBox, msg, type = MessageBox.TYPE_INFO, timeout = 20 )
-            return bv
+            sts, data = self.cm.getPage(uhe)
+            if not sts: return
+            if len(data) == 0: return
+            data = data.split('\n')
+            if len(data) == 0: return
+            for line in data:
+                if len(line) > 0:
+                    if line.startswith('-') and line[2] != ' ':
+                        line = '-  ' + line[1:]
+                    idx1 = line.find('#')
+                    if -1 < idx1:
+                        dtm.append(line[idx1+1:].replace('/n','').strip())
+                        ln += 1
+                        if ln > 20: break
+                        continue
+                    if len(lrs) == 0:
+                        lrs.append(line)
+                    elif len(lrs) < ln:
+                        lrs.append(line)
+                    else:
+                        lrs[ln-1] = lrs[ln-1] + '\n' + line
+            if len(dtm) > 0:
+                ln = 0
+                for item in dtm:
+                    if len(lrs) > 0:
+                        dsc = item + ' verzió változtatásai:\n\n' + lrs[ln]
+                    params = dict(cItem)
+                    params = {'title':item, 'desc':dsc}
+                    self.addMarker(params)
+                    ln += 1
         except Exception:
-            return ''
+            return
         
     def mlmsbt(self):
         encoding = 'utf-8'
