@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-08-02 by Alec - updatehosts HU host telepítő
+# 2019-08-06 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "3.4"
+HOST_VERSION = "3.5"
 ###################################################
 # LOCAL import
 ###################################################
@@ -165,7 +165,15 @@ class updatehosts(CBaseHostClass):
             if not self.ebbtit(): return
             if self.btps != '' and self.brdr != '': self.pbtp = self.btps.strip() + ' - ' + self.brdr.strip()
             uvk = self.vohfg(self.vivn,self.geteprvz())
-            if uvk: msg_uve = '- új E2iPlayer lejátszó elérhető  -  változások listáját nézd meg először!\n'
+            if uvk:
+                msg_uve = '- új E2iPlayer lejátszó elérhető  -  változások listáját nézd meg először!\n'
+            else:
+                tmpc = self.eplrucmtr()
+                if tmpc != '':
+                    tmpct = self.eplrcmtse()
+                    if len(tmpct) == 1:
+                        if tmpct[0] != tmpc:
+                            msg_uve = '- új E2iPlayer lejátszó frissíthető!\n'
             msg_muve = self.mgyerz()
             if msg_muve != '': msg_muve += '\n'
             msg_huve = self.herzs()
@@ -400,6 +408,12 @@ class updatehosts(CBaseHostClass):
                 else:
                     n_tt = 'Telepítés'
                     n_tft = 'Frissítés'
+                    tmpc = self.eplrucmtr()
+                    if tmpc != '':
+                        tmpct = self.eplrcmtse()
+                        if len(tmpct) == 1:
+                            if tmpct[0] != tmpc:
+                                n_tft = 'Frissítés  -  A meglévő verzió frissíthető'
                 n_mmsb = self.malvadst('1', '9', 'updatehosts_p_telepites')
                 if n_mmsb != '' and self.aid:
                     self.aid_ki = 'ID: ' + n_mmsb + '\n'
