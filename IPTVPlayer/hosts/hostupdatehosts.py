@@ -1825,18 +1825,27 @@ class updatehosts(CBaseHostClass):
                     if rhv_tmp == '-':
                         continue
                     else:
-                        return '- új Magyar host telepíthető, frissíthető'
+                        if host == self.UPDATEHOSTS:
+                            return '- a keretrendszer telepíthető, frissíthető  -  Ezt csináld meg először!'
+                        else:
+                            return '- új Magyar host telepíthető, frissíthető'
                 elif lhv_tmp == 'ismeretlen verzió':
                     if rhv_tmp == '-':
                         continue
                     else:
-                        return '- új Magyar host telepíthető, frissíthető'
+                        if host == self.UPDATEHOSTS:
+                            return '- a keretrendszer telepíthető, frissíthető  -  Ezt csináld meg először!'
+                        else:
+                            return '- új Magyar host telepíthető, frissíthető'
                 else:        
                     try:
                         lhv = float(lhv_tmp)
                         rhv = float(rhv_tmp)
                         if lhv < rhv:
-                            return '- új Magyar host telepíthető, frissíthető'
+                            if host == self.UPDATEHOSTS:
+                                return '- a keretrendszer telepíthető, frissíthető  -  Ezt csináld meg először!'
+                            else:
+                                return '- új Magyar host telepíthető, frissíthető'
                     except Exception:
                         continue
             return ''
