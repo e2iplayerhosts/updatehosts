@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-08-12 by Alec - updatehosts HU host telepítő
+# 2019-08-23 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "3.6"
+HOST_VERSION = "3.7"
 ###################################################
 # LOCAL import
 ###################################################
@@ -1625,11 +1625,7 @@ class updatehosts(CBaseHostClass):
                                                 if fileExists(self.dstn_dir + '/' + ffnnvv):
                                                     if self._mycopy(self.dstn_dir + '/' + ffnnvv,tdfn):
                                                         if fileExists(tdfn):
-                                                            if GetFileSize(tdfn) > 0:
-                                                                hb = False
-                                                            else:
-                                                                hb = True
-                                                                break
+                                                            hb = False
                                                         else:
                                                             hb = True
                                                             break
