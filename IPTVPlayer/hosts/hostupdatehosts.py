@@ -1822,7 +1822,7 @@ class updatehosts(CBaseHostClass):
                         continue
                     else:
                         if host == self.UPDATEHOSTS:
-                            return '- a keretrendszer telepíthető, frissíthető  -  Ezt csináld meg először!'
+                            return '- a keretrendszer telepíthető, frissíthető  -  Ezt csináld meg először!   (Magyar hostok telepítése)'
                         else:
                             return '- új Magyar host telepíthető, frissíthető'
                 elif lhv_tmp == 'ismeretlen verzió':
@@ -1830,7 +1830,7 @@ class updatehosts(CBaseHostClass):
                         continue
                     else:
                         if host == self.UPDATEHOSTS:
-                            return '- a keretrendszer telepíthető, frissíthető  -  Ezt csináld meg először!'
+                            return '- a keretrendszer telepíthető, frissíthető  -  Ezt csináld meg először!   (Magyar hostok telepítése)'
                         else:
                             return '- új Magyar host telepíthető, frissíthető'
                 else:        
@@ -1839,7 +1839,7 @@ class updatehosts(CBaseHostClass):
                         rhv = float(rhv_tmp)
                         if lhv < rhv:
                             if host == self.UPDATEHOSTS:
-                                return '- a keretrendszer telepíthető, frissíthető  -  Ezt csináld meg először!'
+                                return '- a keretrendszer telepíthető, frissíthető  -  Ezt csináld meg először!   (Magyar hostok telepítése)'
                             else:
                                 return '- új Magyar host telepíthető, frissíthető'
                     except Exception:
