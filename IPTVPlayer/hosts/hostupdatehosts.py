@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-09-04 by Alec - updatehosts HU host telepítő
+# 2019-09-11 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "3.8"
+HOST_VERSION = "3.9"
 ###################################################
 # LOCAL import
 ###################################################
@@ -140,6 +140,7 @@ class updatehosts(CBaseHostClass):
         self.M4SPORT = zlib.decompress(base64.b64decode('eJzLNSkuyC8qAQAK3gLa'))
         self.VIDEA = zlib.decompress(base64.b64decode('eJwry0xJTQQABk4CCg=='))
         self.FILMGO = zlib.decompress(base64.b64decode('eJxLy8zJTc8HAAirAn8='))
+        self.NONSTOPMOZI = zlib.decompress(base64.b64decode('eJzLy88rLskvyM2vygQAHOUE0Q=='))
         self.aid = config.plugins.iptvplayer.updatehosts_id.value
         self.aid_ki = ''
         self.btps = config.plugins.iptvplayer.boxtipus.value
@@ -278,6 +279,7 @@ class updatehosts(CBaseHostClass):
                 HOST_CAT_TAB.append(self.menuItem(self.M4SPORT))
                 HOST_CAT_TAB.append(self.menuItem(self.VIDEA))
                 HOST_CAT_TAB.append(self.menuItem(self.FILMGO))
+                HOST_CAT_TAB.append(self.menuItem(self.NONSTOPMOZI))
                 HOST_CAT_TAB = sorted(HOST_CAT_TAB, key=lambda i: (i['azon'], i['title']))
                 self.listsTab(HOST_CAT_TAB, cItem)
             else:
@@ -314,6 +316,8 @@ class updatehosts(CBaseHostClass):
                 ls = '\n(A videa.hu videóit jeleníti meg különböző kategóriákban, csatornákban)'
             if host == self.FILMGO:
                 ls = '\n(A filmgo.cc tartalmait jeleníti meg. Filmek és sorozatok minden mennyiségben)'
+            if host == self.NONSTOPMOZI:
+                ls = '\n(A nonstopmozi.com tartalmait jeleníti meg. Filmek és sorozatok minden mennyiségben)'
         return ls
             
     def Magyaritas(self, cItem):
@@ -553,6 +557,9 @@ class updatehosts(CBaseHostClass):
             elif tabID == self.FILMGO:
                 self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.FILMGO,True,False,'https://filmgo.cc')
+            elif tabID == self.NONSTOPMOZI:
+                self.susn('2', '9', 'host_' + tabID)
+                self.host_telepites(self.NONSTOPMOZI,True,False,'https://nonstopmozi.com')
             else:
                 return
         except Exception:
@@ -1819,7 +1826,7 @@ class updatehosts(CBaseHostClass):
         self.addDir(params)
         
     def herzs(self):
-        hlt = [self.UPDATEHOSTS,self.SONYPLAYER,self.MYTVTELENOR,self.RTLMOST,self.MINDIGO,self.MOZICSILLAG,self.FILMEZZ,self.WEBHUPLAYER,self.AUTOHU,self.M4SPORT,self.VIDEA,self.FILMGO]        
+        hlt = [self.UPDATEHOSTS,self.SONYPLAYER,self.MYTVTELENOR,self.RTLMOST,self.MINDIGO,self.MOZICSILLAG,self.FILMEZZ,self.WEBHUPLAYER,self.AUTOHU,self.M4SPORT,self.VIDEA,self.FILMGO,self.NONSTOPMOZI]        
         try:
             for host in hlt:
                 lhv_tmp = self.getHostVersion_local(self.IH + self.HS + '/host' + host + '.py')
