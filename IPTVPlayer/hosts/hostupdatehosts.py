@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-09-11 by Alec - updatehosts HU host telepítő
+# 2019-10-06 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "3.9"
+HOST_VERSION = "4.0"
 ###################################################
 # LOCAL import
 ###################################################
@@ -309,7 +309,7 @@ class updatehosts(CBaseHostClass):
             if host == self.WEBHUPLAYER:
                 ls = '\n(Webes tartalmak (Filmek, Gasztro, TV csatornák, Időkép, Tájak, ...) Blindspot szerkesztésében, YouTube tartalmak megjelenítése)'
             if host == self.AUTOHU:
-                ls = '\n(Magyar autós műsorakat jelenít meg - AUTOGRAM, GARAZS, SUPERCAR, TOTALCAR, FORMA1)'
+                ls = '\n(Magyar autós műsorakat jelenít meg - AUTOGRAM, GARAZS, SUPERCAR, TOTALCAR, FORMA1, VEZESS, AUTONAVIGATOR, AUTOSHOW, AUTOSAMAN, AUTOROOM, HANDRAS TV, ...)'
             if host == self.M4SPORT:
                 ls = '\n(Az m4sport.hu sport műsorait jeleníti meg - Boxutca, Magyar foci, UEFA Bajnokok Ligája foci, Sporthírek, Sportközvetítések)'
             if host == self.VIDEA:
