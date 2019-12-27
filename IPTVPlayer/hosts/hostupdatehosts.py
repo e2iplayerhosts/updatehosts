@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ###################################################
-# 2019-10-06 by Alec - updatehosts HU host telepítő
+# 2019-12-27 by Alec - updatehosts HU host telepítő
 ###################################################
-HOST_VERSION = "4.0"
+HOST_VERSION = "4.1"
 ###################################################
 # LOCAL import
 ###################################################
@@ -141,6 +141,7 @@ class updatehosts(CBaseHostClass):
         self.VIDEA = zlib.decompress(base64.b64decode('eJwry0xJTQQABk4CCg=='))
         self.FILMGO = zlib.decompress(base64.b64decode('eJxLy8zJTc8HAAirAn8='))
         self.NONSTOPMOZI = zlib.decompress(base64.b64decode('eJzLy88rLskvyM2vygQAHOUE0Q=='))
+        self.TECHNIKA = zlib.decompress(base64.b64decode('eJwrSU3OyMvMTgQADu8DSA=='))
         self.aid = config.plugins.iptvplayer.updatehosts_id.value
         self.aid_ki = ''
         self.btps = config.plugins.iptvplayer.boxtipus.value
@@ -280,6 +281,7 @@ class updatehosts(CBaseHostClass):
                 HOST_CAT_TAB.append(self.menuItem(self.VIDEA))
                 HOST_CAT_TAB.append(self.menuItem(self.FILMGO))
                 HOST_CAT_TAB.append(self.menuItem(self.NONSTOPMOZI))
+                HOST_CAT_TAB.append(self.menuItem(self.TECHNIKA))
                 HOST_CAT_TAB = sorted(HOST_CAT_TAB, key=lambda i: (i['azon'], i['title']))
                 self.listsTab(HOST_CAT_TAB, cItem)
             else:
@@ -307,7 +309,7 @@ class updatehosts(CBaseHostClass):
             if host == self.FILMEZZ:
                 ls = '\n(A filmezz.eu tartalmait jeleníti meg. Filmek és sorozatok minden mennyiségben)'
             if host == self.WEBHUPLAYER:
-                ls = '\n(Webes tartalmak (Filmek, Gasztro, TV csatornák, Időkép, Tájak, ...) Blindspot szerkesztésében, YouTube tartalmak megjelenítése)'
+                ls = '\n(Webes tartalmak - Filmek, Gasztro, TV csatornák, Időkép, Tájak, ... - Blindspot szerkesztésében, YouTube tartalmak megjelenítése)'
             if host == self.AUTOHU:
                 ls = '\n(Magyar autós műsorakat jelenít meg - AUTOGRAM, GARAZS, SUPERCAR, TOTALCAR, FORMA1, VEZESS, AUTONAVIGATOR, AUTOSHOW, AUTOSAMAN, AUTOROOM, HANDRAS TV, ...)'
             if host == self.M4SPORT:
@@ -318,6 +320,8 @@ class updatehosts(CBaseHostClass):
                 ls = '\n(A filmgo.cc tartalmait jeleníti meg. Filmek és sorozatok minden mennyiségben)'
             if host == self.NONSTOPMOZI:
                 ls = '\n(A nonstopmozi.com tartalmait jeleníti meg. Filmek és sorozatok minden mennyiségben)'
+            if host == self.TECHNIKA:
+                ls = '\n(Tech műsorcsatornák - TECH2, POWERTECH, MOBEEL, ITFROCCS, TECHVIDEOHU, HASZNÁLT DROID, THEVR TECH, NOTEBOOK.HU, APPLE PIE - műsorai...)'
         return ls
             
     def Magyaritas(self, cItem):
@@ -560,6 +564,9 @@ class updatehosts(CBaseHostClass):
             elif tabID == self.NONSTOPMOZI:
                 self.susn('2', '9', 'host_' + tabID)
                 self.host_telepites(self.NONSTOPMOZI,True,False,'https://nonstopmozi.com')
+            elif tabID == self.TECHNIKA:
+                self.susn('2', '9', 'host_' + tabID)
+                self.host_telepites(self.TECHNIKA,True,False,'Technika.HU')
             else:
                 return
         except Exception:
@@ -1826,7 +1833,7 @@ class updatehosts(CBaseHostClass):
         self.addDir(params)
         
     def herzs(self):
-        hlt = [self.UPDATEHOSTS,self.SONYPLAYER,self.MYTVTELENOR,self.RTLMOST,self.MINDIGO,self.MOZICSILLAG,self.FILMEZZ,self.WEBHUPLAYER,self.AUTOHU,self.M4SPORT,self.VIDEA,self.FILMGO,self.NONSTOPMOZI]        
+        hlt = [self.UPDATEHOSTS,self.SONYPLAYER,self.MYTVTELENOR,self.RTLMOST,self.MINDIGO,self.MOZICSILLAG,self.FILMEZZ,self.WEBHUPLAYER,self.AUTOHU,self.M4SPORT,self.VIDEA,self.FILMGO,self.NONSTOPMOZI,self.TECHNIKA]        
         try:
             for host in hlt:
                 lhv_tmp = self.getHostVersion_local(self.IH + self.HS + '/host' + host + '.py')
